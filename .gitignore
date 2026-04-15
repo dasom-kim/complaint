@@ -1,14 +1,26 @@
-### macOS
-# Finder metadata
+# 의존성
+/node_modules
+
+# 빌드 결과물
+/public/js/bundle.js
+
+# 민감 정보 및 설정
+/public/js/firebase-config.js
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS 및 IDE 생성 파일
 .DS_Store
-
-# Thumbnails
+Thumbs.db
 ._*
-
-# Custom folder icons
-Icon
-
-# Volume root files
+.idea/
+*.iws
+*.iml
+out/
+cmake-build-*/
 .DocumentRevisions-V100
 .fseventsd
 .Spotlight-V100
@@ -16,17 +28,4 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
-
-### JetBrains
-# JetBrains IDE directory
-.idea/
-
-# CMake build directories
-cmake-build-*/
-
-# File-based project format
-*.iws
-*.iml
-
-# IntelliJ build output
-out/
+Icon

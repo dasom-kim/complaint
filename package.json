@@ -1,0 +1,32 @@
+{
+  "name": "maegyo-complaint",
+  "version": "1.0.0",
+  "description": "매교역 교통 개선 민원 접수 도우미",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "build": "browserify public/js/main.js -g [ babelify --presets [ @babel/preset-env ] ] > public/js/bundle.js",
+    "watch": "watchify public/js/main.js -g [ babelify --presets [ @babel/preset-env ] ] -o public/js/bundle.js -v"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "firebase": "^9.9.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "babelify": "^10.0.0",
+    "browserify": "^17.0.0",
+    "watchify": "^4.0.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "eslintConfig": {
+    "parserOptions": {
+      "parser": "babel-eslint",
+      "sourceType": "module",
+      "allowImportExportEverywhere": true
+    }
+  }
+}
