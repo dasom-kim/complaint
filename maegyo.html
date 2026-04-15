@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>살기 좋은 매교 만들기🏡</title>
+    <!-- Google Fonts 추가 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 자연 친화적인 초록색 톤 팔레트 */
+            --primary-color: #059669; /* 메인 초록색 */
+            --primary-hover: #047857; /* 메인 호버 */
+            --bg-color: #f0fdf4; /* 아주 연한 초록빛 배경 */
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #d1fae5; /* 연한 초록 테두리 */
+            --completed-color: #10b981; /* 완료 초록색 */
+            --completed-hover: #059669;
+            --btn-gray: #f8fafc;
+            --btn-gray-hover: #f1f5f9;
+
+            /* 그림자 및 라운드 처리 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 온보딩(최초 접속) 화면 */
+        #onboarding-screen {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+        .onboarding-card {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .onboarding-card h1 {
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+        .onboarding-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            /* 셀렉트 박스 화살표 여백 추가를 위해 패딩 우측을 늘림 */
+            padding-right: 35px;
+            /* 기본 화살표 숨기고 커스텀 아이콘 사용 고려할 수 있으나 여기선 간단히 padding으로 해결 */
+        }
+        .form-group select {
+            /* 브라우저 기본 화살표의 위치를 조절하기 위해 padding과 background 사용 */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .form-group select:focus, .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        /* 메인 앱 레이아웃 */
+        #main-app {
+            display: none;
+            padding-bottom: 50px;
+        }
+
+        /* 상단 헤더 */
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #fff;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hamburger-btn svg {
+            width: 28px;
+            height: 28px;
+        }
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            flex: 1;
+            text-align: center;
+            margin-right: 38px; /* 햄버거 버튼과 균형을 맞추기 위함 */
+        }
+
+        /* 좌측 드로어 메뉴 */
+        .drawer-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .drawer-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .drawer-menu {
+            position: fixed;
+            top: 0; left: -300px;
+            width: 280px; height: 100%;
+            background: #fff;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .drawer-menu.open {
+            left: 0;
+        }
+        .drawer-header {
+            padding: 30px 20px 25px;
+            background-color: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .drawer-header h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            font-weight: 900;
+        }
+        .drawer-user {
+            color: var(--text-main);
+        }
+        .drawer-user .apt-name {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .drawer-user .nickname {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .drawer-nav {
+            list-style: none;
+            padding: 15px 0;
+            margin: 0;
+            flex: 1;
+        }
+        .drawer-nav li {
+            padding: 15px 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .drawer-nav li.active {
+            color: var(--primary-color);
+            background-color: #ecfdf5;
+            border-right: 4px solid var(--primary-color);
+        }
+        .drawer-footer {
+            padding: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 25px 15px;
+        }
+
+        /* 진행 단계 표시줄 */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--border-color);
+            transform: translateY(-50%);
+        }
+        .progress-bar {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transform: translateY(-50%);
+            width: 0;
+            transition: width 0.4s ease;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--bg-color);
+            padding: 0 10px;
+            z-index: 1;
+            color: var(--text-muted);
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background-color: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 2;
+        }
+        .step.active .step-number, .step.completed .step-number {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .step.active span, .step.completed span {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        .step.completed .step-number::after {
+            content: '✓';
+            position: absolute;
+            font-size: 14px;
+            color: white;
+        }
+        .step.completed .step-number {
+            color: transparent;
+        }
+
+        /* 단계별 컨텐츠 */
+        .step-content { display: none; animation: fadeIn 0.4s ease; }
+        .step-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 공통 카드 스타일 */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #a7f3d0;
+        }
+
+        .guide-card {
+            border-color: #a7f3d0;
+            background-color: #ecfdf5;
+            text-align: center;
+        }
+        .guide-card .card-title {
+            color: var(--primary-color);
+            justify-content: center;
+            border-bottom: none;
+            font-size: 1.3rem;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            font-weight: 700;
+            margin: 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            word-break: keep-all;
+        }
+
+        /* 큰 버튼 */
+        .btn-large {
+            display: inline-block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-large:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* 2단계 안내 텍스트 */
+        .instruction-text {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+        }
+        .instruction-text b { color: var(--text-main); }
+        .instruction-text ol { margin: 10px 0 0; padding-left: 20px; }
+        .instruction-text li { margin-bottom: 5px; }
+
+        /* 민원 카드 스타일 */
+        .complaint-card { cursor: pointer; }
+        .complaint-card.completed {
+            border-left: 6px solid var(--completed-color);
+            background-color: #f8fafc;
+        }
+        .toggle-icon {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+            background-color: var(--btn-gray);
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .card-title.collapsed .toggle-icon { transform: rotate(180deg); }
+
+        .card-content-wrapper {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin-top 0.3s ease;
+            opacity: 1;
+            margin-top: 15px;
+            cursor: default;
+        }
+        .card-content-wrapper.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .section { margin-bottom: 18px; }
+        .section-header {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-family: inherit;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        textarea { resize: vertical; min-height: 160px; }
+
+        .button-group { display: flex; gap: 12px; margin-top: 10px; }
+        .btn-copy {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-copy:hover { background-color: var(--btn-gray); border-color: #94a3b8; }
+
+        .btn-submit {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            background-color: var(--text-main);
+            color: white;
+            text-decoration: none;
+            padding: 14px 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            margin-top: 15px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background-color: #0f172a; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-submit.completed { background-color: var(--completed-color); }
+        .btn-submit.completed:hover { background-color: var(--completed-hover); }
+
+        /* 토스트 메시지 */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+            border-radius: 30px;
+            padding: 14px 20px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%) translateY(20px);
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: var(--shadow-lg);
+        }
+        .toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .badge-completed {
+            background-color: var(--completed-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* 모두 완료 화면 */
+        #all-completed-screen { text-align: center; padding: 40px 20px; display: none; }
+        .success-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background-color: var(--completed-color);
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.1);
+        }
+        .success-icon-wrapper svg { width: 40px; height: 40px; stroke-width: 3; }
+        #all-completed-screen h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 5px; color: var(--text-main); }
+        #all-completed-screen p { color: var(--text-muted); margin-bottom: 30px; font-weight: 500; }
+        .btn-secondary {
+            background-color: var(--btn-gray);
+            color: var(--text-main);
+            border: 1px solid #cbd5e1;
+        }
+        .btn-secondary:hover { background-color: var(--btn-gray-hover); color: var(--text-main); }
+
+        /* 3단계: 내역 스타일 */
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-sm);
+        }
+        .history-item .icon-check {
+            color: var(--completed-color);
+            flex-shrink: 0;
+        }
+        .history-item-content { flex: 1; }
+        .history-item-title {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .history-item-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .empty-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            background-color: var(--bg-color);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 1. 최초 접속 온보딩 화면 -->
+<div id="onboarding-screen">
+    <div class="onboarding-card">
+        <h1>살기 좋은 <span>매교</span> 만들기🏡</h1>
+        <p>더 나은 매교를 위한 첫걸음, <br>함께 동참해 주세요!</p>
+
+        <div class="form-group">
+            <label for="apt-select">거주하시는 아파트를 선택해 주세요.</label>
+            <select id="apt-select">
+                <option value="" disabled selected>아파트 선택</option>
+                <option value="매교역푸르지오SK뷰">매교역푸르지오SK뷰</option>
+                <option value="힐스테이트푸르지오수원">힐스테이트푸르지오수원</option>
+                <option value="수원센트럴아이파크자이">수원센트럴아이파크자이</option>
+                <option value="매교역팰루시드">매교역팰루시드</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="nickname-input">사용하실 닉네임을 입력해 주세요.</label>
+            <input type="text" id="nickname-input" placeholder="예: 매교쭈니">
+        </div>
+
+        <button class="btn-large" id="start-btn" style="margin-top: 10px;">시작하기</button>
+    </div>
+</div>
+
+<!-- 2. 메인 애플리케이션 -->
+<div id="main-app">
+    <!-- 헤더 -->
+    <header class="app-header">
+        <button class="hamburger-btn" id="menu-btn" aria-label="메뉴 열기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <h1>민원 접수</h1>
+    </header>
+
+    <!-- 좌측 드로어 메뉴 -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <nav class="drawer-menu" id="drawer-menu">
+        <div class="drawer-header">
+            <h2>살기 좋은 매교 만들기🏡</h2>
+            <div class="drawer-user">
+                <span class="apt-name" id="display-apt"></span>
+                <span class="nickname" id="display-nickname"></span>님 환영합니다
+            </div>
+        </div>
+        <ul class="drawer-nav">
+            <li class="active">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                민원 접수
+            </li>
+        </ul>
+        <div class="drawer-footer">
+            © 2026. 매교쭈니 All rights reserved
+        </div>
+    </nav>
+
+    <!-- 본문 영역 -->
+    <div class="container">
+        <div id="main-content">
+            <div class="progress-steps">
+                <div class="progress-bar"></div>
+                <div class="step active" id="progress-step-1">
+                    <div class="step-number">1</div>
+                    <span>로그인</span>
+                </div>
+                <div class="step" id="progress-step-2">
+                    <div class="step-number">2</div>
+                    <span>민원 작성</span>
+                </div>
+                <div class="step" id="progress-step-3">
+                    <div class="step-number">3</div>
+                    <span>내역</span>
+                </div>
+            </div>
+
+            <div id="step-1" class="step-content active">
+                <div class="card guide-card">
+                    <h2 class="card-title">1단계: 국민신문고 로그인</h2>
+                    <p class="card-desc">모바일 환경에서 여러 번 로그인하는 번거로움을 줄이기 위해,<br>먼저 <b>아래 버튼을 눌러 로그인을 완료</b>해 주세요.</p>
+                    <a href="https://www.epeople.go.kr" target="_blank" class="btn-large" id="login-btn">
+                        국민신문고 열고 로그인하기
+                    </a>
+                </div>
+            </div>
+
+            <div id="step-2" class="step-content">
+                <div class="instruction-text">
+                    아래 순서대로 민원을 접수해 주세요.
+                    <ol>
+                        <li><b>[민원 신청하러 가기]</b>를 눌러 민원 신청 페이지 띄우기</li>
+                        <li><b>[제목 복사]</b> 후 민원 제목에 붙여넣기</li>
+                        <li>다시 돌아와서 <b>[내용 복사]</b> 후 민원 내용에 붙여넣기</li>
+                    </ol>
+                    <p style="margin: 10px 0 0; font-size: 0.85rem; color: #94a3b8;">* 권장 수신처: 수원시청 대중교통과 및 경기도청</p>
+                </div>
+
+                <!-- 민원 1 -->
+                <div class="card complaint-card" id="complaint-1">
+                    <h2 class="card-title" data-complaint-id="1">
+                        <span><span class="badge-completed" style="display:none;">완료</span>1. 수원역~판교 확정 노선 조속 개통</span>
+                        <span class="toggle-icon">▲</span>
+                    </h2>
+                    <div class="card-content-wrapper">
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📌 제목</div>
+                            <input type="text" id="title1" aria-label="1번 민원 제목" value="매교역 경유 '수원역~판교' 직행좌석버스 노선의 즉각적인 개통 및 일정 공개 요청">
+                        </div>
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📝 내용</div>
+                            <textarea id="content1" aria-label="1번 민원 내용">- 현황 및 문제점
+* 수원역을 기점으로 매교역, 동수원사거리, 우만동을 거쳐 판교로 향하는 직행좌석버스 노선이 이미 인가되었습니다.
+* 현재 약 12,000세대가 입주한 매교역 인근 주민들은 판교 방면 출퇴근을 위해 극심한 교통 불편을 겪고 있습니다.
+* 해당 노선은 용남고속에서 운영 예정이나, 차량 출고 지연 등을 이유로 개통이 무기한 미뤄지고 있습니다.
+
+- 구체적인 요구사항
+* 확정 노선 즉시 개통: 지연 사유를 명확히 밝히고 조속한 운행 시작을 강력히 촉구합니다.
+* 비상 대책 마련: 차량 수급이 문제라면 중고 차량 투입이나 타 노선 차량 전환 배치 등 즉각적인 대안을 마련해 주십시오.
+* 투명한 정보 공개: 정확한 개통 예정 일자를 주민들에게 공개하여 행정 신뢰도를 회복해 주십시오.
+
+- 기대 효과
+* 이미 확정된 주민의 이동권 보장 및 판교 방면 출퇴근 편의 획기적 증대.</textarea>
+                        </div>
+                        <div class="button-group" onclick="event.stopPropagation()">
+                            <button class="btn-copy" onclick="copyInput('title1', '제목', 1)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                제목 복사
+                            </button>
+                            <button class="btn-copy" onclick="copyInput('content1', '내용', 1)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                내용 복사
+                            </button>
+                        </div>
+                        <a href="https://www.epeople.go.kr/nep/pttn/gnrlPttn/PttnRqstWrtnInfo.paid" target="_blank" class="btn-submit" data-complaint-id="1" onclick="handleFormSubmit(this, event); event.stopPropagation()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>1번 민원 신청하러 가기</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 민원 2 -->
+                <div class="card complaint-card" id="complaint-2">
+                    <h2 class="card-title" data-complaint-id="2">
+                        <span><span class="badge-completed" style="display:none;">완료</span>2. 사당·강남행 광역급행(M버스) 신설</span>
+                        <span class="toggle-icon">▲</span>
+                    </h2>
+                    <div class="card-content-wrapper">
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📌 제목</div>
+                            <input type="text" id="title2" aria-label="2번 민원 제목" value="매교역 대단지 교통 수요 대응을 위한 사당·강남행 M버스(광역급행버스) 신설 건의">
+                        </div>
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📝 내용</div>
+                            <textarea id="content2" aria-label="2번 민원 내용">- 현황 및 필요성
+* 매교역 일대는 단일 구역으로 전국 최고 수준의 고밀도 주거 지역이 형성되었습니다.
+* 기존 사당(7770번) 및 강남(3000, 3007번)행 노선은 이미 포화 상태이며, 매교역 주민들이 이를 이용하기 위해서는 과도한 환승 피로를 겪어야 합니다.
+* 폭증하는 광역 교통 수요를 감당하기 위해 기존 노선의 단순 증차나 정차만으로는 한계가 명확합니다.
+
+- 구체적인 요구사항
+* M버스 신규 노선 확충: 매교역을 기점으로 서울 도심(사당, 강남 등)으로 직행하는 신규 광역급행버스 노선 신설을 적극 검토해 주십시오.
+* 독립 노선 확보: 환승 없이 바로 서울로 진입할 수 있는 매교역 중심의 독립적인 광역 노선이 필요합니다.
+
+- 기대 효과
+* 1.2만 세대 주민들의 정주 여건 개선 및 서울 방면 출퇴근 시간 단축.</textarea>
+                        </div>
+                        <div class="button-group" onclick="event.stopPropagation()">
+                            <button class="btn-copy" onclick="copyInput('title2', '제목', 2)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                제목 복사
+                            </button>
+                            <button class="btn-copy" onclick="copyInput('content2', '내용', 2)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                내용 복사
+                            </button>
+                        </div>
+                        <a href="https://www.epeople.go.kr/nep/pttn/gnrlPttn/PttnRqstWrtnInfo.paid" target="_blank" class="btn-submit" data-complaint-id="2" onclick="handleFormSubmit(this, event); event.stopPropagation()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>2번 민원 신청하러 가기</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 민원 3 -->
+                <div class="card complaint-card" id="complaint-3">
+                    <h2 class="card-title" data-complaint-id="3">
+                        <span><span class="badge-completed" style="display:none;">완료</span>3. 공항버스 매교역 정차 요청</span>
+                        <span class="toggle-icon">▲</span>
+                    </h2>
+                    <div class="card-content-wrapper">
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📌 제목</div>
+                            <input type="text" id="title3" aria-label="3번 민원 제목" value="수원터미널~수원역 구간 운행 공항버스(4000, 4100, 4300번대)의 매교역 정차 요청">
+                        </div>
+                        <div class="section" onclick="event.stopPropagation()">
+                            <div class="section-header">📝 내용</div>
+                            <textarea id="content3" aria-label="3번 민원 내용">- 현황 및 문제점
+* 현재 인천 및 김포공항으로 향하는 공항버스(4000번, 4300번 및 4100번대 포함)가 수원터미널과 수원역 사이 구간을 운행하고 있습니다.
+* 그러나 해당 노선들이 매교역을 무정차 통과함에 따라, 1.2만 세대 주민들은 무거운 짐을 들고 타 지역 정류장까지 이동해야 하는 극심한 불편을 겪고 있습니다.
+
+- 구체적인 요구사항
+* 공항버스 정류장 신설: 수원터미널과 수원역을 잇는 기존 경로에 매교역 정류장을 신설하여 4000, 4100, 4300번대 노선이 즉각 정차할 수 있도록 조치해 주십시오.
+* 경로 최적화: 주민 이동 편의를 최우선으로 하여 해당 구간 이동 시 매교역을 반드시 경유하도록 경로를 조정해 주십시오.
+
+- 기대 효과
+* 공항 접근성 향상을 통한 주민 생활 편의 증대 및 불필요한 환승/이동 시간 단축.</textarea>
+                        </div>
+                        <div class="button-group" onclick="event.stopPropagation()">
+                            <button class="btn-copy" onclick="copyInput('title3', '제목', 3)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                제목 복사
+                            </button>
+                            <button class="btn-copy" onclick="copyInput('content3', '내용', 3)">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                내용 복사
+                            </button>
+                        </div>
+                        <a href="https://www.epeople.go.kr/nep/pttn/gnrlPttn/PttnRqstWrtnInfo.paid" target="_blank" class="btn-submit" data-complaint-id="3" onclick="handleFormSubmit(this, event); event.stopPropagation()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>3번 민원 신청하러 가기</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-3" class="step-content">
+                <h2 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.3rem;">오늘 접수한 민원 내역</h2>
+                <div id="history-container">
+                    <!-- 동적으로 내역 렌더링 됨 -->
+                </div>
+                <button class="btn-large btn-secondary" onclick="goToStep(2)" style="margin-top: 20px;">
+                    + 민원 추가 접수하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 모두 완료 화면 -->
+        <div id="all-completed-screen">
+            <div class="success-icon-wrapper">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h2>오늘의 민원을 모두 접수했습니다!</h2>
+            <p id="completed-date"></p>
+            <button class="btn-large btn-secondary" id="restart-btn" style="max-width: 300px;">접수 내역 확인하기</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    // 상태 키
+    const USER_INFO_KEY = 'maegyo_user_info';
+    const COMPLAINT_STATUS_KEY = 'complaint_status';
+    const TOTAL_COMPLAINTS = 3;
+
+    const COMPLAINT_TITLES = {
+        1: "1. 수원역~판교 확정 노선 조속 개통",
+        2: "2. 사당·강남행 광역급행(M버스) 신설",
+        3: "3. 공항버스 매교역 정차 요청"
+    };
+
+    // DOM 요소
+    const onboardingScreen = document.getElementById('onboarding-screen');
+    const mainApp = document.getElementById('main-app');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    const drawerMenu = document.getElementById('drawer-menu');
+    const menuBtn = document.getElementById('menu-btn');
+    const displayApt = document.getElementById('display-apt');
+    const displayNickname = document.getElementById('display-nickname');
+
+    // 앱 초기화
+    function initApp() {
+        const userInfo = localStorage.getItem(USER_INFO_KEY);
+        if (!userInfo) {
+            // 온보딩 화면 표시
+            onboardingScreen.style.display = 'flex';
+            mainApp.style.display = 'none';
+        } else {
+            // 메인 앱 표시
+            try {
+                const parsedInfo = JSON.parse(userInfo);
+                applyUserInfo(parsedInfo.apartment, parsedInfo.nickname);
+                onboardingScreen.style.display = 'none';
+                mainApp.style.display = 'block';
+                initComplaintApp();
+            } catch(e) {
+                // 파싱 오류 시 초기화
+                localStorage.removeItem(USER_INFO_KEY);
+                location.reload();
+            }
+        }
+    }
+
+    // 사용자 정보 적용
+    function applyUserInfo(apt, nickname) {
+        displayApt.innerText = apt;
+        displayNickname.innerText = nickname;
+    }
+
+    // 온보딩 폼 제출
+    document.getElementById('start-btn').addEventListener('click', () => {
+        const aptSelect = document.getElementById('apt-select');
+        const nicknameInput = document.getElementById('nickname-input');
+
+        const apt = aptSelect.value;
+        const nickname = nicknameInput.value.trim();
+
+        if (!apt) {
+            alert('거주하시는 아파트를 선택해 주세요.');
+            return;
+        }
+        if (!nickname) {
+            alert('사용하실 닉네임을 입력해 주세요.');
+            return;
+        }
+
+        const userInfo = { apartment: apt, nickname: nickname };
+        localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+
+        applyUserInfo(apt, nickname);
+        onboardingScreen.style.display = 'none';
+        mainApp.style.display = 'block';
+        initComplaintApp();
+    });
+
+    // 드로어 메뉴 토글
+    menuBtn.addEventListener('click', () => {
+        drawerMenu.classList.add('open');
+        drawerOverlay.classList.add('show');
+    });
+
+    drawerOverlay.addEventListener('click', () => {
+        drawerMenu.classList.remove('open');
+        drawerOverlay.classList.remove('show');
+    });
+
+
+    // --- 기존 민원 접수 로직 ---
+    function getToday() { return new Date().toISOString().slice(0, 10); }
+
+    function getCompletionStatus() {
+        const status = localStorage.getItem(COMPLAINT_STATUS_KEY);
+        if (!status) return { date: getToday(), lastCompletedStep: 0, completed: [] };
+        try {
+            const parsed = JSON.parse(status);
+            if (parsed.date !== getToday()) {
+                localStorage.removeItem(COMPLAINT_STATUS_KEY);
+                return { date: getToday(), lastCompletedStep: 0, completed: [] };
+            }
+            return parsed;
+        } catch (e) {
+            return { date: getToday(), lastCompletedStep: 0, completed: [] };
+        }
+    }
+
+    function setLastCompletedStep(step) {
+        const status = getCompletionStatus();
+        if (status.lastCompletedStep < step) {
+            status.lastCompletedStep = step;
+            localStorage.setItem(COMPLAINT_STATUS_KEY, JSON.stringify(status));
+        }
+    }
+
+    function setComplaintCompleted(complaintId) {
+        const status = getCompletionStatus();
+        if (!status.completed.includes(complaintId)) {
+            status.completed.push(complaintId);
+            localStorage.setItem(COMPLAINT_STATUS_KEY, JSON.stringify(status));
+        }
+        checkAllCompleted();
+    }
+
+    function checkAllCompleted() {
+        const status = getCompletionStatus();
+        if (status.completed.length >= TOTAL_COMPLAINTS) {
+            document.getElementById('main-content').style.display = 'none';
+            const completedScreen = document.getElementById('all-completed-screen');
+            completedScreen.style.display = 'block';
+            document.getElementById('completed-date').innerText = `${status.date} 완료`;
+        }
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        const status = getCompletionStatus();
+
+        if (status.completed.length === 0) {
+            container.innerHTML = `
+                <div class="empty-history">
+                    <svg class="icon" style="width: 48px; height: 48px; margin-bottom: 10px; color: #cbd5e1;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <p>아직 오늘 접수한 민원 내역이 없습니다.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<ul class="history-list">';
+        status.completed.forEach(id => {
+            html += `
+                <li class="history-item">
+                    <svg class="icon icon-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <div class="history-item-content">
+                        <div class="history-item-title">${COMPLAINT_TITLES[id]}</div>
+                        <div class="history-item-date">접수일: ${status.date}</div>
+                    </div>
+                </li>
+            `;
+        });
+        html += '</ul>';
+        container.innerHTML = html;
+    }
+
+    function goToStep(step) {
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(`step-${step}`).classList.add('active');
+
+        const progressBar = document.querySelector('.progress-bar');
+        const step1 = document.getElementById('progress-step-1');
+        const step2 = document.getElementById('progress-step-2');
+        const step3 = document.getElementById('progress-step-3');
+
+        // 모든 상태 초기화
+        [step1, step2, step3].forEach(el => {
+            el.classList.remove('active', 'completed');
+        });
+
+        if (step === 1) {
+            progressBar.style.width = '0%';
+            step1.classList.add('active');
+        } else if (step === 2) {
+            progressBar.style.width = '50%';
+            step1.classList.add('completed');
+            step2.classList.add('active');
+            openFirstUncompletedCard();
+        } else if (step === 3) {
+            progressBar.style.width = '100%';
+            step1.classList.add('completed');
+            step2.classList.add('completed');
+            step3.classList.add('active');
+            renderHistory();
+        }
+    }
+
+    function openFirstUncompletedCard() {
+        const status = getCompletionStatus();
+        let opened = false;
+        document.querySelectorAll('.complaint-card').forEach(card => {
+            const complaintId = parseInt(card.querySelector('.card-title').dataset.complaintId);
+            const title = card.querySelector('.card-title');
+            const wrapper = title.nextElementSibling;
+            if (status.completed.includes(complaintId)) {
+                title.classList.add('collapsed');
+                wrapper.classList.add('collapsed');
+            } else if (!opened) {
+                title.classList.remove('collapsed');
+                wrapper.classList.remove('collapsed');
+                opened = true;
+            } else {
+                title.classList.add('collapsed');
+                wrapper.classList.add('collapsed');
+            }
+        });
+    }
+
+    document.getElementById('login-btn').addEventListener('click', () => {
+        setLastCompletedStep(1);
+        goToStep(2);
+    });
+
+    document.getElementById('progress-step-1').addEventListener('click', () => goToStep(1));
+    document.getElementById('progress-step-2').addEventListener('click', () => {
+        const status = getCompletionStatus();
+        if (status.lastCompletedStep >= 1) {
+            goToStep(2);
+        } else {
+            showToast('1단계를 먼저 완료해주세요.');
+        }
+    });
+    document.getElementById('progress-step-3').addEventListener('click', () => {
+        const status = getCompletionStatus();
+        if (status.lastCompletedStep >= 1) {
+            goToStep(3);
+        } else {
+            showToast('1단계를 먼저 완료해주세요.');
+        }
+    });
+
+    document.getElementById('restart-btn').addEventListener('click', () => {
+        document.getElementById('all-completed-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        goToStep(3);
+    });
+
+    function copyInput(elementId, typeLabel, complaintId) {
+        const element = document.getElementById(elementId);
+        navigator.clipboard.writeText(element.value).then(() => {
+            showToast(`✅ ${typeLabel}이(가) 복사되었습니다.`);
+            sessionStorage.setItem(`${typeLabel}_copied_${complaintId}`, 'true');
+        }).catch(err => {
+            alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+        });
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.className = "toast show";
+        setTimeout(() => {
+            toast.className = toast.className.replace("show", "");
+        }, 2500);
+    }
+
+    function handleFormSubmit(element, event) {
+        const complaintId = element.dataset.complaintId;
+        const isTitleCopied = sessionStorage.getItem(`제목_copied_${complaintId}`) === 'true';
+        const isContentCopied = sessionStorage.getItem(`내용_copied_${complaintId}`) === 'true';
+
+        if (isTitleCopied && isContentCopied) {
+            sessionStorage.setItem('pending_complaint', complaintId);
+        }
+    }
+
+    document.querySelectorAll('.complaint-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const title = this.querySelector('.card-title');
+            const contentWrapper = title.nextElementSibling;
+            title.classList.toggle('collapsed');
+            contentWrapper.classList.toggle('collapsed');
+        });
+    });
+
+    window.addEventListener('focus', () => {
+        const pendingId = sessionStorage.getItem('pending_complaint');
+        if (pendingId) {
+            setComplaintCompleted(parseInt(pendingId));
+            sessionStorage.removeItem('pending_complaint');
+            sessionStorage.removeItem(`제목_copied_${pendingId}`);
+            sessionStorage.removeItem(`내용_copied_${pendingId}`);
+
+            updateComplaintCard(pendingId);
+
+            const cardTitle = document.querySelector(`.card-title[data-complaint-id="${pendingId}"]`);
+            const contentWrapper = cardTitle.nextElementSibling;
+            if (!cardTitle.classList.contains('collapsed')) {
+                cardTitle.classList.add('collapsed');
+            }
+
+            if (getCompletionStatus().completed.length < TOTAL_COMPLAINTS) {
+                 setTimeout(openFirstUncompletedCard, 300);
+            }
+        }
+    });
+
+    function initComplaintApp() {
+        sessionStorage.removeItem('pending_complaint');
+        [1, 2, 3].forEach(id => {
+            sessionStorage.removeItem(`제목_copied_${id}`);
+            sessionStorage.removeItem(`내용_copied_${id}`);
+        });
+
+        const status = getCompletionStatus();
+
+        if (status.completed.length >= TOTAL_COMPLAINTS) {
+            checkAllCompleted();
+        } else {
+            status.completed.forEach(id => {
+                updateComplaintCard(id.toString());
+            });
+
+            if (status.lastCompletedStep >= 1) {
+                goToStep(2);
+            } else {
+                goToStep(1);
+            }
+        }
+    }
+
+    function updateComplaintCard(complaintId) {
+        const card = document.getElementById(`complaint-${complaintId}`);
+        const submitBtn = card.querySelector('.btn-submit');
+        const cardTitle = card.querySelector('.card-title');
+
+        if (card && submitBtn) {
+            card.classList.add('completed');
+            submitBtn.classList.add('completed');
+            submitBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span>완료됨 (다시 신청하기)</span>`;
+            const badge = cardTitle.querySelector('.badge-completed');
+            if (badge) badge.style.display = 'inline-block';
+        }
+    }
+
+    // 문서 로드 시 초기화 실행
+    document.addEventListener('DOMContentLoaded', initApp);
+
+</script>
+
+</body>
+</html>
