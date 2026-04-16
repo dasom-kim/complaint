@@ -22,7 +22,8 @@ import firebaseConfig from './firebase-config.js';
 const FIRESTORE_COLLECTIONS = {
     COMPLAINTS: "complaints",
     COMPLETIONS: "completions",
-    GUESTBOOK: "guestbook"
+    GUESTBOOK: "guestbook",
+    COMMON: "common"
 };
 const FIRESTORE_DOCUMENTS = {
     MAIN_DATA: "main-data"
@@ -52,7 +53,7 @@ try {
         where,
         orderBy,
         limit,
-        getCountFromServer
+        getCountFromServer,
     };
 } catch (e) {
     console.error("Firebase 초기화에 실패했습니다. Firebase 설정을 확인해주세요.", e);
@@ -113,6 +114,7 @@ async function initApp() {
             mainApp.style.display = 'block';
             await signInAnonymouslyIfNeeded();
                 await syncServerCompletionState();
+                await checkNewAnnouncements();
             await syncServerCompletionState();
             await loadAndRenderComplaints();
             await initComplaintApp();
@@ -159,6 +161,7 @@ if (startBtn) {
             console.log('\'시작하기\' 버튼 클릭. 데이터 로딩을 시작합니다...');
             await signInAnonymouslyIfNeeded();
             await syncServerCompletionState();
+            await checkNewAnnouncements();
             await syncServerCompletionState();
             // 시작하기 버튼 클릭 시 데이터 로딩 시도
             await loadAndRenderComplaints();
@@ -216,7 +219,188 @@ document.querySelectorAll('.drawer-nav li').forEach(navItem => {
         drawerMenu.classList.remove('open');
         drawerOverlay.classList.remove('show');
     });
+
+    // 알림 팝오버 관련
+    const notificationBtn = document.getElementById('notification-btn');
+    const notificationPopover = document.getElementById('notification-popover');
+    const notificationDot = document.getElementById('notification-dot');
+
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isShown = notificationPopover.classList.toggle('show');
+            if (isShown) {
+                loadAnnouncements();
+                notificationDot.style.display = 'none';
+            }
+        });
+    }
+
+    // 팝오버 외부 클릭 시 닫기
+    document.addEventListener('click', (event) => {
+        if (notificationPopover && notificationPopover.classList.contains('show')) {
+            if (!notificationPopover.contains(event.target) && !notificationBtn.contains(event.target)) {
+                notificationPopover.classList.remove('show');
+            }
+        }
+    });
 });
+
+let allAnnouncements = [];
+let currentAnnouncementPage = 1;
+const announcementsPerPage = 1;
+
+window.changeAnnouncementPage = (event, page) => {
+    event.stopPropagation();
+    const totalPages = Math.ceil(allAnnouncements.length / announcementsPerPage);
+    if (page < 1 || page > totalPages) {
+        return;
+    }
+    currentAnnouncementPage = page;
+    renderAnnouncements();
+};
+
+function renderAnnouncements() {
+    const contentEl = document.getElementById('notification-content');
+
+    if (!allAnnouncements || allAnnouncements.length === 0) {
+        contentEl.innerHTML = '<div class="announcement-empty">새로운 공지사항이 없습니다.</div>';
+        return;
+    }
+
+    const startIndex = (currentAnnouncementPage - 1) * announcementsPerPage;
+    const endIndex = startIndex + announcementsPerPage;
+    const pageItems = allAnnouncements.slice(startIndex, endIndex);
+
+    let announcementsHtml = '';
+    pageItems.forEach(item => {
+        const date = item.timestamp.toDate();
+        const dateString = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        const contentHtml = window.marked ? window.marked.parse(item.content || '') : item.content;
+        announcementsHtml += `
+            <div class="announcement-item">
+                <div class="date">${dateString}</div>
+                <div class="title">${item.title}</div>
+                <div class="content" ${!window.marked ? 'style="white-space: pre-wrap;"' : ''}>${contentHtml}</div>
+            </div>
+        `;
+    });
+
+    const totalPages = Math.ceil(allAnnouncements.length / announcementsPerPage);
+    if (totalPages > 1) {
+        let paginationHtml = '<div class="pagination-controls">';
+
+        const prevDisabled = currentAnnouncementPage === 1 ? 'disabled' : '';
+        paginationHtml += `<button class="page-btn" onclick="window.changeAnnouncementPage(event, ${currentAnnouncementPage - 1})" ${prevDisabled}>이전</button>`;
+
+        paginationHtml += `<span class="page-info">${currentAnnouncementPage} / ${totalPages}</span>`;
+
+        const nextDisabled = currentAnnouncementPage === totalPages ? 'disabled' : '';
+        paginationHtml += `<button class="page-btn" onclick="window.changeAnnouncementPage(event, ${currentAnnouncementPage + 1})" ${nextDisabled}>다음</button>`;
+
+        paginationHtml += '</div>';
+        announcementsHtml += paginationHtml;
+    }
+
+    contentEl.innerHTML = announcementsHtml;
+}
+
+/**
+ * 개발자에게 문의 이메일 링크 클릭을 처리합니다.
+ * 이메일 주소를 클립보드에 복사하고, mailto 링크를 엽니다.
+ * @param {MouseEvent} event - 클릭 이벤트 객체
+ */
+function handleContactClick(event) {
+    event.preventDefault();
+    const email = 'maegyo.jjuny@gmail.com';
+
+    // 클립보드 API를 지원하는지 확인합니다.
+    if (!navigator.clipboard) {
+        // 지원하지 않으면 mailto 링크만 실행합니다.
+        window.location.href = `mailto:${email}`;
+        return;
+    }
+
+    // 이메일을 클립보드에 복사합니다.
+    navigator.clipboard.writeText(email).then(() => {
+        // 복사 성공 시 토스트 메시지를 보여줍니다.
+        showToast('문의 이메일이 복사되었습니다.');
+        // mailto 링크를 실행하여 메일 클라이언트를 엽니다.
+        window.location.href = `mailto:${email}`;
+    }).catch(err => {
+        console.error('이메일 복사에 실패했습니다:', err);
+        // 복사에 실패해도 mailto 링크를 실행합니다.
+        window.location.href = `mailto:${email}`;
+    });
+}
+// onclick 핸들러에서 전역적으로 접근할 수 있도록 window 객체에 할당합니다.
+window.handleContactClick = handleContactClick;
+
+
+async function loadAnnouncements() {
+    if (!window.firebase) return;
+
+    const contentEl = document.getElementById('notification-content');
+    contentEl.innerHTML = '<div class="loading-spinner" style="margin: 20px auto;"></div>';
+
+    try {
+        const { db, doc, getDoc } = window.firebase;
+        const docRef = doc(db, FIRESTORE_COLLECTIONS.COMMON, 'notice');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().items && docSnap.data().items.length > 0) {
+            allAnnouncements = (docSnap.data().items || []).sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+        } else {
+            allAnnouncements = [];
+        }
+
+        currentAnnouncementPage = 1;
+        renderAnnouncements();
+
+        if (allAnnouncements.length > 0) {
+            localStorage.setItem('maegyo_last_announcement_id', allAnnouncements[0].id);
+        }
+
+    } catch (e) {
+        console.error("공지사항 로드 중 오류:", e);
+        contentEl.innerHTML = '<div class="announcement-empty">공지사항을 불러오는 중 오류가 발생했습니다.</div>';
+        allAnnouncements = [];
+    }
+}
+
+async function checkNewAnnouncements() {
+    if (!window.firebase || !window.firebase.auth.currentUser) return;
+
+    const notificationDot = document.getElementById('notification-dot');
+    const lastCheckId = localStorage.getItem('maegyo_last_announcement_id');
+
+    try {
+        const { db, doc, getDoc } = window.firebase;
+        const docRef = doc(db, FIRESTORE_COLLECTIONS.COMMON, 'notice');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const items = (data.items || []).sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+            if (items.length > 0) {
+                const latestId = items[0].id;
+                if (latestId && String(latestId) !== lastCheckId) {
+                    notificationDot.style.display = 'block';
+                } else {
+                    notificationDot.style.display = 'none';
+                }
+            } else {
+                notificationDot.style.display = 'none';
+            }
+        } else {
+            notificationDot.style.display = 'none';
+        }
+    } catch (e) {
+        console.error("새 공지사항 확인 중 오류:", e);
+        notificationDot.style.display = 'none';
+    }
+}
 
 
 // --- Firebase 데이터 로직 ---
