@@ -96,11 +96,22 @@ body {
     border: 1px solid #cbd5e1;
     border-radius: var(--radius-md);
     font-size: 1rem;
-    padding-right: 50px;
     font-family: inherit;
     color: var(--text-main);
     background-color: #f8fafc;
     transition: all 0.2s;
+    /* Custom select arrow styling */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    -webkit-appearance: none;
+    /* Hide native arrow on WebKit browsers */
+    -moz-appearance: none;
+    /* Hide native arrow on Firefox */
+    appearance: none;
+    /* Hide native arrow */
+    padding-right: 40px;
+    /* Ensure text doesn't overlap the custom arrow */
 }
 
 .form-group select:focus,
@@ -420,6 +431,11 @@ body {
     align-items: center;
 }
 
+.card-title>span:first-child {
+    margin-right: 10px;
+    /* 민원 제목과 화살표 사이 간격 추가 */
+}
+
 .card-desc {
     font-size: 0.95rem;
     color: var(--text-muted);
@@ -490,12 +506,23 @@ body {
     border-radius: var(--radius-md);
     background-color: #fff;
     color: var(--text-main);
-    padding-right: 50px;
     font-family: inherit;
     font-size: 0.95rem;
     cursor: pointer;
     outline: none;
     transition: border-color 0.2s;
+    /* Custom select arrow styling */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    -webkit-appearance: none;
+    /* Hide native arrow on WebKit browsers */
+    -moz-appearance: none;
+    /* Hide native arrow on Firefox */
+    appearance: none;
+    /* Hide native arrow */
+    padding-right: 40px;
+    /* Ensure text doesn't overlap the custom arrow */
 }
 
 .filter-select:focus {
@@ -535,6 +562,11 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+}
+
+.complaint-card .card-title.collapsed {
+    border-bottom: none;
+    /* 민원 섹션 접혔을 때 밑줄 제거 */
 }
 
 .card-title.collapsed .toggle-icon {

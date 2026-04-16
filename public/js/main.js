@@ -167,6 +167,9 @@ document.querySelectorAll('.drawer-nav li').forEach(navItem => {
         Object.values(pages).forEach(page => {
             if (page) page.style.display = 'none';
         });
+        // 모든 페이지 전환 시, '모두 완료' 화면을 기본적으로 숨깁니다.
+        const allCompletedScreen = document.getElementById('all-completed-screen');
+        if (allCompletedScreen) allCompletedScreen.style.display = 'none';
 
         if (pages[targetPage]) {
             pages[targetPage].style.display = 'block';
