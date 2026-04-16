@@ -44,14 +44,19 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* 온보딩(최초 접속) 화면 */
-#onboarding-screen {
+/* 모달 오버레이 스타일 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 1000;
     display: flex;
-    min-height: 100vh;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background-color: var(--bg-color);
 }
 
 .onboarding-card {
@@ -62,6 +67,8 @@ body {
     width: 100%;
     max-width: 400px;
     text-align: center;
+    /* 모달 내부에서 사용할 때 여백 제거를 위함 */
+    margin: auto;
 }
 
 .onboarding-card h1 {
@@ -75,6 +82,24 @@ body {
     color: var(--text-muted);
     font-size: 0.95rem;
     margin-bottom: 30px;
+}
+
+.divider {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 20px 0; /* 위아래 간격 20px 추가 */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+    margin: 0 10px;
 }
 
 .form-group {
@@ -127,7 +152,7 @@ body {
 
 /* 메인 앱 레이아웃 */
 #main-app {
-    display: none;
+    display: block; /* 초기부터 block으로 변경, 모달이 위에 뜸 */
     padding-bottom: 50px;
 }
 
@@ -352,6 +377,22 @@ body {
     text-align: center;
     border-top: 1px solid var(--border-color);
 }
+
+.footer-links {
+    margin-top: 10px;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: underline;
+    margin: 0 5px;
+    font-size: 0.7rem;
+}
+
+.footer-links a:hover {
+    color: var(--text-main);
+}
+
 
 .container {
     max-width: 800px;
@@ -641,17 +682,15 @@ body {
 }
 
 .toggle-icon {
-    font-size: 0.8rem;
     color: var(--text-muted);
     transition: transform 0.3s ease;
-    background-color: var(--btn-gray);
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+    transform: rotate(180deg); /* 기본 상태: 위쪽 화살표 */
 }
+
+.complaint-card .card-title.collapsed .toggle-icon {
+    transform: rotate(0deg); /* 접혔을 때: 아래쪽 화살표 */
+}
+
 
 /* --- 공지사항 아코디언 스타일 --- */
 .announcement-item {
@@ -670,18 +709,29 @@ body {
     cursor: pointer;
 }
 
+.announcement-header-text {
+    flex: 1;
+}
+
 .announcement-header-text .title {
     font-weight: 500;
+    margin-bottom: 4px;
 }
-.announcement-header-text .date {
+
+.announcement-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.announcement-meta .date {
     font-size: 0.8rem;
     color: var(--text-muted);
-    margin-top: 4px;
 }
 
 .announcement-item .content {
-    padding: 0 15px 15px;
-    border-top: 1px solid var(--border-color-light);
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
     display: block;
 }
 
@@ -690,27 +740,18 @@ body {
 }
 
 .announcement-header .toggle-icon {
-    width: 9px;
-    height: 9px;
-    border-left: 2px solid var(--text-muted);
-    border-bottom: 2px solid var(--text-muted);
-    transform: rotate(135deg); /* 위쪽 화살표 */
     transition: transform 0.3s ease-in-out;
     margin-left: 10px;
+    color: var(--text-muted);
+    transform: rotate(180deg); /* 펼쳐진 상태 (위) */
+    width: 20px; /* 아이콘 크기 조절 */
+    height: 20px; /* 아이콘 크기 조절 */
 }
 
 .announcement-item.collapsed .announcement-header .toggle-icon {
-    transform: rotate(-45deg); /* 아래쪽 화살표 */
+    transform: rotate(0deg); /* 접힌 상태 (아래) */
 }
 
-.complaint-card .card-title.collapsed {
-    border-bottom: none;
-    /* 민원 섹션 접혔을 때 밑줄 제거 */
-}
-
-.card-title.collapsed .toggle-icon {
-    transform: rotate(180deg);
-}
 
 .card-content-wrapper {
     max-height: 2000px;
@@ -1250,19 +1291,6 @@ textarea {
     border-bottom: none;
 }
 
-.announcement-item .date {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-}
-
-.announcement-item .title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 8px;
-}
-
 .announcement-item .content {
     font-size: 0.9rem;
     line-height: 1.6;
@@ -1327,4 +1355,60 @@ textarea {
         opacity: 1;
         transform: scale(1);
     }
+}
+
+/* 커스텀 얼럿 스타일 */
+.alert-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.alert-card p {
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0 0 25px;
+    word-break: keep-all;
+}
+
+/* 공지사항 좋아요 버튼 */
+.announcement-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0; /* 패딩 제거 */
+}
+
+.like-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.like-btn .icon-heart {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    fill: none;
+    transition: all 0.2s ease;
+}
+
+.like-btn.active .icon-heart {
+    stroke: #ef4444;
+    fill: #ef4444;
+}
+
+.like-count {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
 }

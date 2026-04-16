@@ -36,9 +36,10 @@ export async function loadStats() {
 
         const allDocs = [...querySnapshot.docs];
 
+        // 1. 얼리버드 순위 (createdDate 기준)
         const sortedBySpeed = allDocs.sort((docA, docB) => {
-            const tsA = docA.data().timestamp?.seconds || 0;
-            const tsB = docB.data().timestamp?.seconds || 0;
+            const tsA = docA.data().createdDate?.seconds || 0;
+            const tsB = docB.data().createdDate?.seconds || 0;
             return tsA - tsB;
         });
         const top3BySpeed = sortedBySpeed.slice(0, 3);
@@ -46,8 +47,8 @@ export async function loadStats() {
         top3BySpeed.forEach((docSnap, index) => {
             const data = docSnap.data();
             let timeStr = "";
-            if (data.timestamp) {
-                const dateObj = new Date(data.timestamp.seconds * 1000);
+            if (data.createdDate) {
+                const dateObj = new Date(data.createdDate.seconds * 1000);
                 timeStr = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
             }
             speedRankingHtml += `
@@ -63,6 +64,7 @@ export async function loadStats() {
         speedRankingHtml += '</ul>';
         rankingEl.innerHTML = speedRankingHtml;
 
+        // 2. 열정왕 순위 (totalCount 기준)
         if (rankingByCountEl) {
             const sortedByCount = allDocs.sort((docA, docB) => (docB.data().totalCount || 0) - (docA.data().totalCount || 0));
             const top3ByCount = sortedByCount.slice(0, 3);

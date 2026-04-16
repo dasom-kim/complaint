@@ -1,7 +1,8 @@
-import { signInAnonymouslyIfNeeded, FIRESTORE_COLLECTIONS, FIRESTORE_DOCUMENTS } from './firebase.js';
-import { COMPLAINTS_DATA_KEY, COMPLAINT_STATUS_KEY, COMPLAINT_HISTORY_KEY, SERVER_COMPLETION_STATE_KEY, getToday, showToast, USER_INFO_KEY } from './utils.js';
+import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCUMENTS } from './firebase.js';
+import { COMPLAINTS_DATA_KEY, COMPLAINT_STATUS_KEY, COMPLAINT_HISTORY_KEY, SERVER_COMPLETION_STATE_KEY, getToday, showToast, USER_INFO_KEY, showAlert } from './utils.js';
 
 let TOTAL_COMPLAINTS = 0;
+let complaintListenersAttached = false;
 
 export async function getComplaintsData() {
     const cachedData = sessionStorage.getItem(COMPLAINTS_DATA_KEY);
@@ -66,41 +67,50 @@ export function getServerCompletionState() {
     }
 }
 
-export async function syncServerCompletionState() {
-    if (!window.firebase || !window.firebase.auth.currentUser) {
+export async function syncComplaintStateFromServer() {
+    const user = window.firebase?.auth?.currentUser;
+    if (!user) {
         console.log("Cannot sync server state, user not logged in.");
-        const state = { date: getToday(), totalCount: 0, complaints: {} };
-        localStorage.setItem(SERVER_COMPLETION_STATE_KEY, JSON.stringify(state));
         return;
     }
 
     const { db, collection, query, where, getDocs } = window.firebase;
-    const uid = window.firebase.auth.currentUser.uid;
     const today = getToday();
 
     try {
-        const q = query(collection(db, FIRESTORE_COLLECTIONS.COMPLETIONS), where("uid", "==", uid), where("date", "==", today));
+        let q;
+        if (user.isAnonymous) {
+            q = query(collection(db, FIRESTORE_COLLECTIONS.COMPLETIONS), where("uid", "==", user.uid), where("date", "==", today));
+        } else {
+            q = query(collection(db, FIRESTORE_COLLECTIONS.COMPLETIONS), where("email", "==", user.email), where("date", "==", today));
+        }
+
         const querySnapshot = await getDocs(q);
 
-        let serverState;
-        if (querySnapshot.empty) {
-            serverState = { date: today, totalCount: 0, complaints: {} };
-        } else {
+        let serverComplaints = {};
+        let serverTotalCount = 0;
+
+        if (!querySnapshot.empty) {
             const data = querySnapshot.docs[0].data();
-            serverState = {
-                date: today,
-                totalCount: data.totalCount || 0,
-                complaints: data.complaints || {}
-            };
+            serverComplaints = data.complaints || {};
+            serverTotalCount = data.totalCount || 0;
         }
+
+        const serverState = { date: today, totalCount: serverTotalCount, complaints: serverComplaints };
         localStorage.setItem(SERVER_COMPLETION_STATE_KEY, JSON.stringify(serverState));
-        console.log("Server completion state synced to localStorage:", serverState);
+
+        const history = getCompletionHistory();
+        history[today] = serverComplaints;
+        localStorage.setItem(COMPLAINT_HISTORY_KEY, JSON.stringify(history));
+
+        console.log("서버 데이터와 로컬 상태 동기화 완료:", serverComplaints);
+
     } catch (e) {
         console.error("Error syncing server completion state:", e);
-        const serverState = { date: today, totalCount: 0, complaints: {} };
-        localStorage.setItem(SERVER_COMPLETION_STATE_KEY, JSON.stringify(serverState));
+        showAlert("서버에서 민원 내역을 가져오는 중 오류가 발생했습니다.");
     }
 }
+
 
 export function getCompletionHistory() {
     return JSON.parse(localStorage.getItem(COMPLAINT_HISTORY_KEY) || '{}');
@@ -296,7 +306,7 @@ window.copyInput = function (elementId, typeLabel, complaintId) {
         sessionStorage.setItem(`complaint_${complaintId}_${typeLabel}_clicked`, 'true');
         checkCompletion(complaintId);
     }).catch(err => {
-        alert('복사에 실패했습니다. 수동으로 복사해 주세요.');
+        showAlert('복사에 실패했습니다. 수동으로 복사해 주세요.');
     });
 }
 
@@ -482,6 +492,8 @@ export async function updateRankingButtonState() {
 }
 
 export function attachComplaintListeners() {
+    if (complaintListenersAttached) return;
+
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
@@ -494,28 +506,10 @@ export function attachComplaintListeners() {
     if (pStep1) pStep1.addEventListener('click', () => goToStep(1));
 
     const pStep2 = document.getElementById('progress-step-2');
-    if (pStep2) {
-        pStep2.addEventListener('click', () => {
-            const status = getCompletionStatus();
-            if (status.lastCompletedStep >= 1) {
-                goToStep(2);
-            } else {
-                showToast('1단계를 먼저 완료해주세요.');
-            }
-        });
-    }
+    if (pStep2) pStep2.addEventListener('click', () => goToStep(2));
 
     const pStep3 = document.getElementById('progress-step-3');
-    if (pStep3) {
-        pStep3.addEventListener('click', () => {
-            const status = getCompletionStatus();
-            if (status.lastCompletedStep >= 1) {
-                goToStep(3);
-            } else {
-                showToast('1단계를 먼저 완료해주세요.');
-            }
-        });
-    }
+    if (pStep3) pStep3.addEventListener('click', () => goToStep(3));
 
     const restartBtn = document.getElementById('restart-btn');
     if (restartBtn) {
@@ -532,87 +526,86 @@ export function attachComplaintListeners() {
 
     const uploadSummaryBtn = document.getElementById('upload-summary-btn');
     if (uploadSummaryBtn) {
-        uploadSummaryBtn.addEventListener('click', async () => {
-            if (!window.firebase) {
-                showToast('오류: Firebase에 연결되지 않았습니다.');
+        // 기존 리스너 모두 제거
+        const newUploadSummaryBtn = uploadSummaryBtn.cloneNode(true);
+        uploadSummaryBtn.parentNode.replaceChild(newUploadSummaryBtn, uploadSummaryBtn);
+
+        newUploadSummaryBtn.addEventListener('click', async () => {
+            const user = window.firebase?.auth?.currentUser;
+            if (!user) {
+                showAlert('로그인이 필요합니다.');
                 return;
             }
 
             const { db, collection, addDoc, updateDoc, serverTimestamp, query, where, getDocs } = window.firebase;
-            const { auth } = window.firebase;
-
-            if (!auth.currentUser) {
-                await signInAnonymouslyIfNeeded();
-                if (!auth.currentUser) {
-                    showToast('로그인이 필요합니다. 잠시 후 다시 시도해주세요.');
-                    return;
-                }
-            }
-            const uid = auth.currentUser.uid;
 
             const history = getCompletionHistory();
             const today = getToday();
-            const todaysCompletions = history[today];
+            const todaysCompletions = history[today] || {};
 
-            if (!todaysCompletions || Object.keys(todaysCompletions).length === 0) {
-                showToast('접수한 민원 내역이 없습니다. 민원 접수 후 참여해주세요.');
+            if (Object.keys(todaysCompletions).length === 0) {
+                showAlert('접수한 민원 내역이 없습니다. 민원 접수 후 참여해주세요.');
                 return;
             }
 
-            uploadSummaryBtn.disabled = true;
-            uploadSummaryBtn.innerText = '업로드 중...';
+            newUploadSummaryBtn.disabled = true;
+            newUploadSummaryBtn.innerText = '업로드 중...';
 
             try {
                 const completionsCollection = collection(db, FIRESTORE_COLLECTIONS.COMPLETIONS);
-                const q = query(completionsCollection, where("uid", "==", uid), where("date", "==", today));
+
+                let q;
+                if (user.isAnonymous) {
+                    q = query(completionsCollection, where("uid", "==", user.uid), where("date", "==", today));
+                } else {
+                    q = query(completionsCollection, where("email", "==", user.email), where("date", "==", today));
+                }
+
                 const querySnapshot = await getDocs(q);
                 const totalCount = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0);
-
-                const updateLocalServerState = () => {
-                    const newState = { date: today, totalCount: totalCount, complaints: todaysCompletions };
-                    localStorage.setItem(SERVER_COMPLETION_STATE_KEY, JSON.stringify(newState));
-                };
+                const userInfo = JSON.parse(localStorage.getItem(USER_INFO_KEY));
 
                 if (querySnapshot.empty) {
-                    const userInfo = JSON.parse(localStorage.getItem(USER_INFO_KEY));
+                    // Create new document
                     const submissionData = {
-                        uid: uid,
+                        uid: user.uid,
                         date: today,
-                        timestamp: serverTimestamp(),
+                        createdDate: serverTimestamp(),
+                        modifiedDate: serverTimestamp(),
                         nickname: userInfo.nickname,
                         apartment: userInfo.apartment,
                         complaints: todaysCompletions,
                         totalCount: totalCount,
                     };
+                    if (!user.isAnonymous) {
+                        submissionData.email = user.email;
+                    }
                     await addDoc(completionsCollection, submissionData);
                     showToast('🏆 랭킹 참여가 완료되었습니다!');
-                    updateLocalServerState();
                 } else {
+                    // Update existing document
                     const docToUpdate = querySnapshot.docs[0];
-                    const existingTotalCount = docToUpdate.data().totalCount || 0;
-
-                    if (totalCount > existingTotalCount) {
-                        const userInfo = JSON.parse(localStorage.getItem(USER_INFO_KEY));
-                        await updateDoc(docToUpdate.ref, {
-                            complaints: todaysCompletions,
-                            totalCount: totalCount,
-                            timestamp: serverTimestamp(),
-                            nickname: userInfo.nickname,
-                            apartment: userInfo.apartment,
-                        });
-                        showToast('🏆 랭킹이 성공적으로 갱신되었습니다!');
-                        updateLocalServerState();
-                    } else {
-                        showToast('이전 기록보다 민원 접수 건수가 적거나 같아 갱신되지 않았습니다.');
-                    }
+                    const updateData = {
+                        complaints: todaysCompletions,
+                        totalCount: totalCount,
+                        modifiedDate: serverTimestamp(),
+                        nickname: userInfo.nickname,
+                        apartment: userInfo.apartment,
+                    };
+                    await updateDoc(docToUpdate.ref, updateData);
+                    showToast('🏆 랭킹이 성공적으로 갱신되었습니다!');
                 }
+
+                await syncComplaintStateFromServer();
+
             } catch (e) {
                 console.error('랭킹 참여 중 오류 발생:', e);
-                showToast('오류가 발생했습니다. 다시 시도해주세요.');
+                showAlert('오류가 발생했습니다. 다시 시도해주세요.');
             } finally {
-                uploadSummaryBtn.disabled = false;
+                newUploadSummaryBtn.disabled = false;
                 await goToStep(3);
             }
         });
     }
+    complaintListenersAttached = true;
 }
