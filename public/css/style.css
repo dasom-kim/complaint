@@ -100,6 +100,9 @@ body {
     color: var(--text-main);
     background-color: #f8fafc;
     transition: all 0.2s;
+}
+
+.form-group select {
     /* Custom select arrow styling */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -203,13 +206,12 @@ body {
 }
 
 .drawer-header {
-    padding: 30px 20px 25px;
+    padding: 30px 20px;
     background-color: var(--bg-color);
-    border-bottom: 1px solid var(--border-color);
 }
 
 .drawer-header h2 {
-    margin: 0 0 15px 0;
+    margin: 0;
     font-size: 1.25rem;
     color: var(--primary-color);
     font-weight: 900;
@@ -229,6 +231,43 @@ body {
 .drawer-user .nickname {
     font-size: 1.1rem;
     font-weight: 700;
+}
+
+.drawer-user-section {
+    padding: 15px 20px;
+    background-color: #f8fafc;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout-btn {
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.logout-btn:hover {
+    background-color: var(--btn-gray);
+    color: var(--text-main);
+}
+
+.logout-btn .icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
 }
 
 .drawer-nav {
@@ -254,6 +293,21 @@ body {
     color: var(--primary-color);
     background-color: #ecfdf5;
     border-right: 4px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+}
+
+.drawer-nav li .icon {
+    margin-right: 18px;
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.5;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.drawer-nav li.active .icon {
+    color: var(--primary-color);
 }
 
 .drawer-footer {
@@ -817,6 +871,16 @@ textarea {
     color: var(--text-muted);
 }
 
+.ranking-item .ranking-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    background-color: #ecfdf5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
 .loading-spinner {
     border: 4px solid var(--btn-gray);
     border-top: 4px solid var(--primary-color);
@@ -888,6 +952,42 @@ textarea {
     color: var(--text-main);
 }
 
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.step-header h2 {
+    font-size: 1.3rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.btn-action {
+    background-color: var(--btn-gray);
+    color: var(--text-main);
+    border: 1px solid #cbd5e1;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-action:hover {
+    background-color: var(--btn-gray-hover);
+}
+
+.step-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
 /* 3단계: 내역 스타일 */
 .history-list {
     list-style: none;
@@ -919,12 +1019,22 @@ textarea {
 .history-item-title {
     font-weight: 700;
     color: var(--text-main);
-    margin-bottom: 4px;
 }
 
 .history-item-date {
     font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+.history-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    background-color: #ecfdf5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .empty-history {
@@ -934,4 +1044,71 @@ textarea {
     background-color: var(--bg-color);
     border-radius: var(--radius-lg);
     border: 1px dashed var(--border-color);
+}
+
+/* 방명록 스타일 */
+#guestbook-input {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-family: inherit;
+    background-color: #f8fafc;
+    color: var(--text-main);
+    transition: all 0.2s;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+#guestbook-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.guestbook-entry {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow-sm);
+}
+
+.guestbook-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.guestbook-entry-user {
+    font-weight: 700;
+}
+
+.guestbook-entry-user .apt-name {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-left: 8px;
+}
+
+.guestbook-entry-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.guestbook-entry-message {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    word-break: keep-all;
+    line-height: 1.7;
+}
+
+#guestbook-submit-btn:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: var(--shadow-sm);
 }
