@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -35,6 +35,10 @@
         </div>
 
         <button class="btn-large" id="start-btn" style="margin-top: 10px;">시작하기</button>
+        <div id="onboarding-loader" style="display: none; margin-top: 20px; text-align: center;">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 10px; color: var(--text-muted);">앱을 준비하고 있습니다...</p>
+        </div>
     </div>
 </div>
 
@@ -244,7 +248,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="/js/bundle.js"></script>
+<script src="js/bundle.js"></script>
 
 </body>
 </html>

@@ -113,9 +113,8 @@ async function initApp() {
             onboardingScreen.style.display = 'none';
             mainApp.style.display = 'block';
             await signInAnonymouslyIfNeeded();
-                await syncServerCompletionState();
-                await checkNewAnnouncements();
             await syncServerCompletionState();
+            await checkNewAnnouncements();
             await loadAndRenderComplaints();
             await initComplaintApp();
         } catch (e) {
@@ -139,6 +138,7 @@ if (startBtn) {
     startBtn.addEventListener('click', async () => {
         const aptSelect = document.getElementById('apt-select');
         const nicknameInput = document.getElementById('nickname-input');
+        const onboardingLoader = document.getElementById('onboarding-loader');
 
         const apt = aptSelect.value;
         const nickname = nicknameInput.value.trim();
@@ -152,6 +152,9 @@ if (startBtn) {
             return;
         }
 
+        startBtn.style.display = 'none';
+        if (onboardingLoader) onboardingLoader.style.display = 'block';
+
         const userInfo = { apartment: apt, nickname: nickname };
         localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
 
@@ -162,7 +165,6 @@ if (startBtn) {
             await signInAnonymouslyIfNeeded();
             await syncServerCompletionState();
             await checkNewAnnouncements();
-            await syncServerCompletionState();
             // 시작하기 버튼 클릭 시 데이터 로딩 시도
             await loadAndRenderComplaints();
             console.log('데이터 로딩 완료. UI를 업데이트합니다.');
@@ -173,6 +175,8 @@ if (startBtn) {
         } catch (e) {
             console.error('데이터 로딩 또는 앱 초기화 중 오류 발생:', e);
             alert('네트워크 문제로 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+            startBtn.style.display = 'block';
+            if (onboardingLoader) onboardingLoader.style.display = 'none';
         }
     });
 }
@@ -248,7 +252,7 @@ document.querySelectorAll('.drawer-nav li').forEach(navItem => {
 
 let allAnnouncements = [];
 let currentAnnouncementPage = 1;
-const announcementsPerPage = 1;
+const announcementsPerPage = 3;
 
 window.changeAnnouncementPage = (event, page) => {
     event.stopPropagation();
@@ -258,6 +262,10 @@ window.changeAnnouncementPage = (event, page) => {
     }
     currentAnnouncementPage = page;
     renderAnnouncements();
+};
+
+window.toggleAnnouncement = (headerElement) => {
+    headerElement.parentElement.classList.toggle('collapsed');
 };
 
 function renderAnnouncements() {
@@ -273,14 +281,21 @@ function renderAnnouncements() {
     const pageItems = allAnnouncements.slice(startIndex, endIndex);
 
     let announcementsHtml = '';
-    pageItems.forEach(item => {
+    pageItems.forEach((item, index) => {
         const date = item.timestamp.toDate();
         const dateString = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
         const contentHtml = window.marked ? window.marked.parse(item.content || '') : item.content;
+        const isCollapsed = index > 0; // First item is expanded
+
         announcementsHtml += `
-            <div class="announcement-item">
-                <div class="date">${dateString}</div>
-                <div class="title">${item.title}</div>
+            <div class="announcement-item ${isCollapsed ? 'collapsed' : ''}">
+                <div class="announcement-header" onclick="window.toggleAnnouncement(this)">
+                    <div class="announcement-header-text">
+                        <div class="title">${item.title}</div>
+                        <div class="date">${dateString}</div>
+                    </div>
+                    <div class="toggle-icon"></div>
+                </div>
                 <div class="content" ${!window.marked ? 'style="white-space: pre-wrap;"' : ''}>${contentHtml}</div>
             </div>
         `;

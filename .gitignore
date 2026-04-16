@@ -11,12 +11,16 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firebase-debug.log*
 
 # OS 및 IDE 생성 파일
 .DS_Store
 Thumbs.db
 ._*
 .idea/
+.agents/
+.claude/
+.firebase/
 *.iws
 *.iml
 out/
@@ -29,3 +33,4 @@ cmake-build-*/
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 Icon
+.eslintcache

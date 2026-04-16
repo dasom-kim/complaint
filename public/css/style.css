@@ -653,6 +653,56 @@ body {
     border-radius: 50%;
 }
 
+/* --- 공지사항 아코디언 스타일 --- */
+.announcement-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background-color: var(--card-bg);
+}
+
+.announcement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+}
+
+.announcement-header-text .title {
+    font-weight: 500;
+}
+.announcement-header-text .date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.announcement-item .content {
+    padding: 0 15px 15px;
+    border-top: 1px solid var(--border-color-light);
+    display: block;
+}
+
+.announcement-item.collapsed .content {
+    display: none;
+}
+
+.announcement-header .toggle-icon {
+    width: 9px;
+    height: 9px;
+    border-left: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(135deg); /* 위쪽 화살표 */
+    transition: transform 0.3s ease-in-out;
+    margin-left: 10px;
+}
+
+.announcement-item.collapsed .announcement-header .toggle-icon {
+    transform: rotate(-45deg); /* 아래쪽 화살표 */
+}
+
 .complaint-card .card-title.collapsed {
     border-bottom: none;
     /* 민원 섹션 접혔을 때 밑줄 제거 */

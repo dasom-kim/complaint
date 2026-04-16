@@ -1,16 +1,14 @@
 {
-  "name": "maegyo-complaint",
+  "name": "maegyo-complaint-static",
   "version": "1.0.0",
-  "description": "매교역 교통 개선 민원 접수 도우미",
-  "main": "app.js",
+  "description": "매교역 교통 개선 민원 접수 도우미 (정적 사이트)",
+  "main": "public/index.html",
   "scripts": {
-    "start": "node app.js",
+    "start": "live-server public/",
     "build": "browserify public/js/main.js -g [ babelify --presets [ @babel/preset-env ] ] > public/js/bundle.js",
     "watch": "watchify public/js/main.js -g [ babelify --presets [ @babel/preset-env ] ] -o public/js/bundle.js -v"
   },
   "dependencies": {
-    "ejs": "^3.1.10",
-    "express": "^4.19.2",
     "firebase": "^9.9.0"
   },
   "devDependencies": {
@@ -18,6 +16,7 @@
     "@babel/preset-env": "^7.24.7",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
+    "live-server": "^1.2.2",
     "watchify": "^4.0.0"
   },
   "author": "",
