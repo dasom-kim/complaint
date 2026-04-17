@@ -34,8 +34,22 @@ const pages = {
 let isAnonymousLoginAttempt = false;
 let authStateResolved = false;
 
+// 인앱 브라우저 감지 및 경고 표시
+function handleInAppBrowser() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    // 카카오톡 인앱 브라우저 감지
+    if (userAgent.includes('kakaotalk')) {
+        const banner = document.getElementById('inapp-browser-warning');
+        if (banner) {
+            banner.style.display = 'block';
+        }
+    }
+}
+
 // 앱 초기화 및 인증 상태 관찰
 function initApp() {
+    handleInAppBrowser(); // 앱 시작 시 인앱 브라우저 체크
+
     onAuthStateChanged(auth, async (user) => {
         authStateResolved = true;
         let userProfile = null;

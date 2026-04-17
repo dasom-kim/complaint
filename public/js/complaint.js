@@ -406,6 +406,7 @@ export function initComplaintCards() {
 }
 
 export async function initComplaintApp() {
+    // 민원별 복사/제출 상태를 초기화합니다.
     sessionStorage.removeItem('pending_complaint');
     [1, 2, 3, 4, 5].forEach(id => {
         sessionStorage.removeItem(`complaint_${id}_제목_clicked`);
@@ -413,23 +414,25 @@ export async function initComplaintApp() {
         sessionStorage.removeItem(`complaint_${id}_submit_clicked`);
     });
 
-    const history = getCompletionHistory();
-    const today = getToday();
-    const todaysCompletions = history[today] || {};
-
-    const hasHistoryToday = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0) > 0;
-
+    // '모두 완료' 화면을 숨기고 민원 접수 페이지를 표시합니다.
     const allCompletedScreen = document.getElementById('all-completed-screen');
     if (allCompletedScreen) allCompletedScreen.style.display = 'none';
 
     const complaintPage = document.getElementById('complaint-page');
-    if (complaintPage) {
-        complaintPage.style.display = 'block';
-    }
+    if (complaintPage) complaintPage.style.display = 'block';
 
+    // 오늘 이미 민원을 접수한 내역이 있는지 확인합니다.
+    const history = getCompletionHistory();
+    const today = getToday();
+    const todaysCompletions = history[today] || {};
+    const hasHistoryToday = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0) > 0;
+
+    // 오늘 접수한 내역이 있으면 3단계(내역) 페이지로, 없으면 1단계(로그인) 페이지로 이동합니다.
     if (hasHistoryToday) {
+        console.log("오늘 접수한 민원 내역이 있어 3단계로 바로 이동합니다.");
         await goToStep(3);
     } else {
+        console.log("오늘 접수한 민원 내역이 없어 1단계부터 시작합니다.");
         await goToStep(1);
     }
 }
@@ -485,9 +488,9 @@ export async function updateRankingButtonState() {
     const totalCountA = serverState.totalCount;
 
     if (totalCountA > 0) {
-        uploadSummaryBtn.innerText = '접수 건수 업데이트하기 🏆';
+        uploadSummaryBtn.innerText = '랭킹 업데이트하기 🏆';
     } else {
-        uploadSummaryBtn.innerText = '민원 접수 건수 저장하기 🏆';
+        uploadSummaryBtn.innerText = '오늘의 랭킹 참여하기 🏆';
     }
 }
 
