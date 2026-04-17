@@ -488,9 +488,9 @@ export async function updateRankingButtonState() {
     const totalCountA = serverState.totalCount;
 
     if (totalCountA > 0) {
-        uploadSummaryBtn.innerText = '랭킹 업데이트하기 🏆';
+        uploadSummaryBtn.innerText = '접수 건수 업데이트하기 🏆';
     } else {
-        uploadSummaryBtn.innerText = '오늘의 랭킹 참여하기 🏆';
+        uploadSummaryBtn.innerText = '민원 접수 건수 저장하기 🏆';
     }
 }
 
@@ -545,9 +545,16 @@ export function attachComplaintListeners() {
             const history = getCompletionHistory();
             const today = getToday();
             const todaysCompletions = history[today] || {};
+            const localTotalCount = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0);
 
-            if (Object.keys(todaysCompletions).length === 0) {
+            if (localTotalCount === 0) {
                 showAlert('접수한 민원 내역이 없습니다. 민원 접수 후 참여해주세요.');
+                return;
+            }
+
+            const serverState = getServerCompletionState();
+            if (localTotalCount <= serverState.totalCount) {
+                showToast('이미 최신 민원 건수가 서버에 저장되어 있습니다.');
                 return;
             }
 
@@ -565,7 +572,6 @@ export function attachComplaintListeners() {
                 }
 
                 const querySnapshot = await getDocs(q);
-                const totalCount = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0);
                 const userInfo = JSON.parse(localStorage.getItem(USER_INFO_KEY));
 
                 if (querySnapshot.empty) {
@@ -578,7 +584,7 @@ export function attachComplaintListeners() {
                         nickname: userInfo.nickname,
                         apartment: userInfo.apartment,
                         complaints: todaysCompletions,
-                        totalCount: totalCount,
+                        totalCount: localTotalCount,
                     };
                     if (!user.isAnonymous) {
                         submissionData.email = user.email;
@@ -590,7 +596,7 @@ export function attachComplaintListeners() {
                     const docToUpdate = querySnapshot.docs[0];
                     const updateData = {
                         complaints: todaysCompletions,
-                        totalCount: totalCount,
+                        totalCount: localTotalCount,
                         modifiedDate: serverTimestamp(),
                         nickname: userInfo.nickname,
                         apartment: userInfo.apartment,

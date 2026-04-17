@@ -100,6 +100,11 @@ export function renderAnnouncements() {
     const user = window.firebase?.auth?.currentUser;
     const userIdentifier = user ? (user.isAnonymous ? user.uid : user.email) : null;
 
+    const cachedAnnouncements = sessionStorage.getItem('announcements');
+    if (cachedAnnouncements) {
+        allAnnouncements = JSON.parse(cachedAnnouncements);
+    }
+
     if (!allAnnouncements || allAnnouncements.length === 0) {
         contentEl.innerHTML = '<div class="announcement-empty">새로운 공지사항이 없습니다.</div>';
         return;
@@ -111,7 +116,7 @@ export function renderAnnouncements() {
 
     let announcementsHtml = '';
     pageItems.forEach((item, index) => {
-        const date = item.timestamp.toDate();
+        const date = new Date(item.timestamp.seconds * 1000);
         const dateString = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
         const contentHtml = window.marked ? window.marked.parse(item.content || '') : item.content;
         const isCollapsed = index > 0;
@@ -193,9 +198,12 @@ export async function loadAnnouncements() {
                     item.likedBy = [];
                 }
             });
+            
+            sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
 
         } else {
             allAnnouncements = [];
+            sessionStorage.removeItem('announcements');
         }
 
         currentAnnouncementPage = 1;
