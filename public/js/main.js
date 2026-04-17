@@ -37,12 +37,22 @@ let authStateResolved = false;
 // 인앱 브라우저 감지 및 경고 표시
 function handleInAppBrowser() {
     const userAgent = navigator.userAgent.toLowerCase();
+    const banner = document.getElementById('inapp-browser-warning');
+    const closeBtn = document.getElementById('close-inapp-warning');
+
     // 카카오톡 인앱 브라우저 감지
     if (userAgent.includes('kakaotalk')) {
-        const banner = document.getElementById('inapp-browser-warning');
         if (banner) {
             banner.style.display = 'block';
         }
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            if (banner) {
+                banner.style.display = 'none';
+            }
+        });
     }
 }
 
