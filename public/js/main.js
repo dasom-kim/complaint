@@ -115,7 +115,7 @@ function initApp() {
     // Firebase 인증이 너무 오래 걸릴 경우 대비
     setTimeout(async () => {
         if (!authStateResolved) {
-            console.warn("Firebase 인증 시간이 초과되었습니다. 오프라인 모드로 표시합니다.");
+            // console.warn("Firebase 인증 시간이 초과되었습니다. 오프라인 모드로 표시합니다.");
             await showMainApp(true, false);
         }
     }, 3000);
@@ -155,7 +155,7 @@ async function showMainApp(showOnboarding, showProfile) {
         attachGuestbookListeners();
         attachFooterLinks();
     } catch (e) {
-        console.error("앱 데이터 로드 실패:", e);
+        // console.error("앱 데이터 로드 실패:", e);
         showAlert("데이터를 불러오는 데 실패했습니다.");
     }
 }
@@ -214,7 +214,7 @@ if (startAnonymousBtn) {
         try {
             await signInAnonymouslyIfNeeded();
         } catch (e) {
-            console.error('익명 로그인 실패:', e);
+            // console.error('익명 로그인 실패:', e);
             showAlert('서버에 연결하는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
             startAnonymousBtn.style.display = 'block';
             if (anonymousLoader) anonymousLoader.style.display = 'none';
@@ -266,7 +266,7 @@ if (saveProfileBtn) {
             applyUserInfo(apt, nickname);
             if(profileSetupModal) profileSetupModal.style.display = 'none'; // 모달 닫기
         } catch (e) {
-            console.error("프로필 저장 오류:", e);
+            // console.error("프로필 저장 오류:", e);
             showAlert("정보 저장에 실패했습니다. 다시 시도해주세요.");
         } finally {
             saveProfileBtn.style.display = 'block';
@@ -355,7 +355,7 @@ if (logoutBtn) {
 
             if (auth) {
                 await auth.signOut();
-                console.log("Firebase signed out.");
+                // console.log("Firebase signed out.");
             }
 
             showToast('로그아웃되었습니다. 다시 시작해주세요.');

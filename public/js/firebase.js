@@ -67,7 +67,7 @@ try {
         runTransaction, // 트랜잭션 추가
     };
 } catch (e) {
-    console.error("Firebase 초기화에 실패했습니다. Firebase 설정을 확인해주세요.", e);
+    // console.error("Firebase 초기화에 실패했습니다. Firebase 설정을 확인해주세요.", e);
     showAlert("Firebase 연동에 실패했습니다. 앱이 정상적으로 동작하지 않을 수 있습니다.");
 }
 
@@ -75,15 +75,15 @@ export { db, auth, onAuthStateChanged };
 
 export async function signInAnonymouslyIfNeeded() {
     if (auth.currentUser) {
-        console.log("이미 로그인되어 있습니다.", auth.currentUser.uid);
+        // console.log("이미 로그인되어 있습니다.", auth.currentUser.uid);
         return auth.currentUser;
     }
     try {
         const userCredential = await signInAnonymously(auth);
-        console.log("익명으로 로그인 성공.", userCredential.user.uid);
+        // console.log("익명으로 로그인 성공.", userCredential.user.uid);
         return userCredential.user;
     } catch (e) {
-        console.error("익명 로그인 중 오류 발생:", e);
+        // console.error("익명 로그인 중 오류 발생:", e);
         showAlert("서버에 연결하는 중 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.");
         return null;
     }
@@ -96,7 +96,7 @@ export async function signInWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         return result.user;
     } catch (error) {
-        console.error("Google 로그인 중 오류 발생:", error);
+        // console.error("Google 로그인 중 오류 발생:", error);
         showAlert("Google 로그인에 실패했습니다. 팝업 차단을 해제했는지 확인해주세요.");
         return null;
     }

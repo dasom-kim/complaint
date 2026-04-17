@@ -7,13 +7,13 @@ let complaintListenersAttached = false;
 export async function getComplaintsData() {
     const cachedData = sessionStorage.getItem(COMPLAINTS_DATA_KEY);
     if (cachedData) {
-        console.log("캐시에서 민원 목록 로드");
+        // console.log("캐시에서 민원 목록 로드");
         return JSON.parse(cachedData);
     }
 
     if (!window.firebase) throw new Error("Firebase not initialized");
 
-    console.log("Firestore에서 민원 목록 로드");
+    // console.log("Firestore에서 민원 목록 로드");
     const { db, doc, getDoc } = window.firebase;
     const docRef = doc(db, FIRESTORE_COLLECTIONS.COMPLAINTS, FIRESTORE_DOCUMENTS.MAIN_DATA);
     const docSnap = await getDoc(docRef);
@@ -23,7 +23,7 @@ export async function getComplaintsData() {
         sessionStorage.setItem(COMPLAINTS_DATA_KEY, JSON.stringify(complaints));
         return complaints;
     } else {
-        console.log("Firestore에 'main-data' 문서가 없습니다.");
+        // console.log("Firestore에 'main-data' 문서가 없습니다.");
         return [];
     }
 }
@@ -70,7 +70,7 @@ export function getServerCompletionState() {
 export async function syncComplaintStateFromServer() {
     const user = window.firebase?.auth?.currentUser;
     if (!user) {
-        console.log("Cannot sync server state, user not logged in.");
+        // console.log("Cannot sync server state, user not logged in.");
         return;
     }
 
@@ -103,10 +103,10 @@ export async function syncComplaintStateFromServer() {
         history[today] = serverComplaints;
         localStorage.setItem(COMPLAINT_HISTORY_KEY, JSON.stringify(history));
 
-        console.log("서버 데이터와 로컬 상태 동기화 완료:", serverComplaints);
+        // console.log("서버 데이터와 로컬 상태 동기화 완료:", serverComplaints);
 
     } catch (e) {
-        console.error("Error syncing server completion state:", e);
+        // console.error("Error syncing server completion state:", e);
         showAlert("서버에서 민원 내역을 가져오는 중 오류가 발생했습니다.");
     }
 }
@@ -208,7 +208,7 @@ export async function renderHistory(category = 'all') {
         }
         container.innerHTML = html;
     } catch (e) {
-        console.error("민원 내역 렌더링 중 오류 발생:", e);
+        // console.error("민원 내역 렌더링 중 오류 발생:", e);
         container.innerHTML = `<p>내역을 불러오는 중 오류가 발생했습니다.</p>`;
     }
 }
@@ -429,10 +429,10 @@ export async function initComplaintApp() {
 
     // 오늘 접수한 내역이 있으면 3단계(내역) 페이지로, 없으면 1단계(로그인) 페이지로 이동합니다.
     if (hasHistoryToday) {
-        console.log("오늘 접수한 민원 내역이 있어 3단계로 바로 이동합니다.");
+        // console.log("오늘 접수한 민원 내역이 있어 3단계로 바로 이동합니다.");
         await goToStep(3);
     } else {
-        console.log("오늘 접수한 민원 내역이 없어 1단계부터 시작합니다.");
+        // console.log("오늘 접수한 민원 내역이 없어 1단계부터 시작합니다.");
         await goToStep(1);
     }
 }
@@ -451,7 +451,7 @@ export async function loadAndRenderComplaints() {
         const status = getCompletionStatus();
         status.completed.forEach(id => updateComplaintCard(id.toString()));
     } catch (e) {
-        console.error("민원 목록 렌더링 실패:", e);
+        // console.error("민원 목록 렌더링 실패:", e);
         if (container) container.innerHTML = `<p style="text-align:center; color: var(--text-muted); padding: 20px 0;">민원 목록을 불러오는 데 실패했습니다.</p>`;
         throw e;
     }
@@ -608,7 +608,7 @@ export function attachComplaintListeners() {
                 await syncComplaintStateFromServer();
 
             } catch (e) {
-                console.error('랭킹 참여 중 오류 발생:', e);
+                // console.error('랭킹 참여 중 오류 발생:', e);
                 showAlert('오류가 발생했습니다. 다시 시도해주세요.');
             } finally {
                 newUploadSummaryBtn.disabled = false;

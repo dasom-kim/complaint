@@ -85,7 +85,7 @@ window.toggleLike = async (event, announcementId) => {
             }
         });
     } catch (e) {
-        console.error("Transaction failed: ", e);
+        // console.error("Transaction failed: ", e);
         showAlert("좋아요 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
 
         // Rollback optimistic update on failure
@@ -101,26 +101,26 @@ window.toggleLike = async (event, announcementId) => {
 
 
 export function renderAnnouncements() {
-    console.log("renderAnnouncements() 호출됨");
+    // console.log("renderAnnouncements() 호출됨");
     const contentEl = document.getElementById('notification-content');
     const user = window.firebase?.auth?.currentUser;
     const userIdentifier = user ? (user.isAnonymous ? user.uid : user.email) : null;
 
     const cachedAnnouncements = sessionStorage.getItem('announcements');
-    console.log("세션 스토리지에서 데이터 가져옴:", cachedAnnouncements ? '성공' : '실패');
+    // console.log("세션 스토리지에서 데이터 가져옴:", cachedAnnouncements ? '성공' : '실패');
 
     if (cachedAnnouncements) {
         try {
             allAnnouncements = JSON.parse(cachedAnnouncements);
-            console.log("JSON 파싱 성공:", allAnnouncements);
+            // console.log("JSON 파싱 성공:", allAnnouncements);
         } catch (e) {
-            console.error("JSON 파싱 실패:", e);
+            // console.error("JSON 파싱 실패:", e);
             allAnnouncements = [];
         }
     }
 
     if (!allAnnouncements || allAnnouncements.length === 0) {
-        console.log("표시할 공지사항 없음. 함수 종료.");
+        // console.log("표시할 공지사항 없음. 함수 종료.");
         contentEl.innerHTML = '<div class="announcement-empty">새로운 공지사항이 없습니다.</div>';
         return;
     }
@@ -178,10 +178,10 @@ export function renderAnnouncements() {
         paginationHtml += '</div>';
         announcementsHtml += paginationHtml;
     }
-
-    console.log("생성된 HTML:", announcementsHtml);
+    
+    // console.log("생성된 HTML:", announcementsHtml);
     contentEl.innerHTML = announcementsHtml;
-    console.log("HTML 렌더링 완료");
+    // console.log("HTML 렌더링 완료");
 }
 
 export async function loadAnnouncements() {
@@ -230,7 +230,7 @@ export async function loadAnnouncements() {
         }
 
     } catch (e) {
-        console.error("공지사항 로드 중 오류:", e);
+        // console.error("공지사항 로드 중 오류:", e);
         allAnnouncements = [];
     }
 }
@@ -264,7 +264,7 @@ export async function checkNewAnnouncements() {
         return false;
 
     } catch (e) {
-        console.error("새 공지사항 확인 중 오류:", e);
+        // console.error("새 공지사항 확인 중 오류:", e);
         notificationDot.style.display = 'none';
         return false;
     }
