@@ -3,7 +3,7 @@ import { USER_INFO_KEY, COMPLAINT_STATUS_KEY, COMPLAINT_HISTORY_KEY, COMPLAINTS_
 import { initComplaintApp, loadAndRenderComplaints, syncComplaintStateFromServer, attachComplaintListeners } from "./complaint.js";
 import { loadStats } from "./stats.js";
 import { loadGuestbook, attachGuestbookListeners } from "./guestbook.js";
-import { loadAnnouncements, checkNewAnnouncements } from "./announcement.js";
+import { loadAnnouncements, checkNewAnnouncements, renderAnnouncements } from "./announcement.js";
 import { initAdminPage } from "./admin.js";
 
 // DOM 요소
@@ -137,10 +137,16 @@ async function showMainApp(showOnboarding, showProfile) {
     }
 
     try {
+        // 1. 공지사항 데이터를 항상 로드하여 캐싱
+        await loadAnnouncements();
+        
+        // 2. 새로운 공지사항이 있는지 확인
         const hasNew = await checkNewAnnouncements();
+        
+        // 3. 새로운 공지사항이 있을 경우에만 팝업을 자동으로 표시
         if (hasNew) {
             notificationPopover.classList.add('show');
-            await loadAnnouncements();
+            renderAnnouncements();
         }
 
         await loadAndRenderComplaints();
@@ -321,10 +327,7 @@ if (notificationBtn) {
         event.stopPropagation();
         const isShown = notificationPopover.classList.toggle('show');
         if (isShown) {
-            // 팝업이 열릴 때 컨텐츠가 비어있으면 로드
-            if (document.getElementById('notification-content').innerHTML.trim() === '') {
-                loadAnnouncements();
-            }
+            renderAnnouncements();
             notificationDot.style.display = 'none';
         }
     });

@@ -96,16 +96,26 @@ window.toggleLike = async (event, announcementId) => {
 
 
 export function renderAnnouncements() {
+    console.log("renderAnnouncements() 호출됨");
     const contentEl = document.getElementById('notification-content');
     const user = window.firebase?.auth?.currentUser;
     const userIdentifier = user ? (user.isAnonymous ? user.uid : user.email) : null;
 
     const cachedAnnouncements = sessionStorage.getItem('announcements');
+    console.log("세션 스토리지에서 데이터 가져옴:", cachedAnnouncements ? '성공' : '실패');
+
     if (cachedAnnouncements) {
-        allAnnouncements = JSON.parse(cachedAnnouncements);
+        try {
+            allAnnouncements = JSON.parse(cachedAnnouncements);
+            console.log("JSON 파싱 성공:", allAnnouncements);
+        } catch (e) {
+            console.error("JSON 파싱 실패:", e);
+            allAnnouncements = [];
+        }
     }
 
     if (!allAnnouncements || allAnnouncements.length === 0) {
+        console.log("표시할 공지사항 없음. 함수 종료.");
         contentEl.innerHTML = '<div class="announcement-empty">새로운 공지사항이 없습니다.</div>';
         return;
     }
@@ -164,50 +174,51 @@ export function renderAnnouncements() {
         announcementsHtml += paginationHtml;
     }
 
+    console.log("생성된 HTML:", announcementsHtml);
     contentEl.innerHTML = announcementsHtml;
+    console.log("HTML 렌더링 완료");
 }
 
 export async function loadAnnouncements() {
     if (!window.firebase) return;
-
-    const contentEl = document.getElementById('notification-content');
-    contentEl.innerHTML = '<div class="loading-spinner" style="margin: 20px auto;"></div>';
 
     try {
         const { db, doc, getDoc, collection, getDocs } = window.firebase;
         const noticeRef = doc(db, FIRESTORE_COLLECTIONS.COMMON, 'notice');
         const noticeSnap = await getDoc(noticeRef);
 
-        if (noticeSnap.exists() && noticeSnap.data().items && noticeSnap.data().items.length > 0) {
-            allAnnouncements = (noticeSnap.data().items || []).sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+        if (noticeSnap.exists()) {
+            const items = noticeSnap.data().items;
+            if (items && items.length > 0) {
+                allAnnouncements = items.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
 
-            // 좋아요 데이터 가져와서 병합
-            const likesSnapshot = await getDocs(collection(db, FIRESTORE_COLLECTIONS.NOTICE_LIKES));
-            const likesData = {};
-            likesSnapshot.forEach(doc => {
-                likesData[doc.id] = doc.data();
-            });
+                const likesSnapshot = await getDocs(collection(db, FIRESTORE_COLLECTIONS.NOTICE_LIKES));
+                const likesData = {};
+                likesSnapshot.forEach(doc => {
+                    likesData[doc.id] = doc.data();
+                });
 
-            allAnnouncements.forEach(item => {
-                const likeInfo = likesData[String(item.id)]; // ID를 문자열로 변환하여 조회
-                if (likeInfo) {
-                    item.likeCount = likeInfo.likeCount;
-                    item.likedBy = likeInfo.likedBy;
-                } else {
-                    item.likeCount = 0;
-                    item.likedBy = [];
-                }
-            });
-            
-            sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
+                allAnnouncements.forEach(item => {
+                    const likeInfo = likesData[String(item.id)];
+                    if (likeInfo) {
+                        item.likeCount = likeInfo.likeCount;
+                        item.likedBy = likeInfo.likedBy;
+                    } else {
+                        item.likeCount = 0;
+                        item.likedBy = [];
+                    }
+                });
+                
+                sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
 
+            } else {
+                allAnnouncements = [];
+                sessionStorage.removeItem('announcements');
+            }
         } else {
             allAnnouncements = [];
             sessionStorage.removeItem('announcements');
         }
-
-        currentAnnouncementPage = 1;
-        renderAnnouncements();
 
         if (allAnnouncements.length > 0) {
             localStorage.setItem('maegyo_last_announcement_id', allAnnouncements[0].id);
@@ -215,7 +226,6 @@ export async function loadAnnouncements() {
 
     } catch (e) {
         console.error("공지사항 로드 중 오류:", e);
-        contentEl.innerHTML = '<div class="announcement-empty">공지사항을 불러오는 중 오류가 발생했습니다.</div>';
         allAnnouncements = [];
     }
 }
@@ -238,16 +248,15 @@ export async function checkNewAnnouncements() {
             if (items.length > 0) {
                 const latestId = items[0].id;
 
-                // 최초 접속자이거나, 마지막으로 확인한 ID와 최신 ID가 다른 경우
                 if (!lastCheckId || (latestId && String(latestId) !== lastCheckId)) {
                     notificationDot.style.display = 'block';
-                    return true; // 새 공지 있음
+                    return true;
                 }
             }
         }
 
         notificationDot.style.display = 'none';
-        return false; // 새 공지 없음
+        return false;
 
     } catch (e) {
         console.error("새 공지사항 확인 중 오류:", e);
