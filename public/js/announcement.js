@@ -49,6 +49,10 @@ window.toggleLike = async (event, announcementId) => {
         localItem.likeCount = Math.max(0, originalLikeCount - 1);
         localItem.likedBy.splice(userIndex, 1);
     }
+    
+    // Update sessionStorage before re-rendering
+    sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
+    
     renderAnnouncements(); // Re-render with optimistic update
 
     // 2. Sync with Firestore in the background
@@ -90,6 +94,7 @@ window.toggleLike = async (event, announcementId) => {
             failedItem.likeCount = originalLikeCount;
             failedItem.likedBy = originalLikedBy;
         }
+        sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
         renderAnnouncements();
     }
 };
