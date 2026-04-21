@@ -1,4 +1,4 @@
-import { auth, onAuthStateChanged, signInWithGoogle, getUserProfile, saveUserProfile, signInAnonymouslyIfNeeded } from "./firebase.js";
+import { auth, onAuthStateChanged, signInWithGoogle, handleGoogleRedirectResult, getUserProfile, saveUserProfile, signInAnonymouslyIfNeeded } from "./firebase.js";
 import { USER_INFO_KEY, COMPLAINT_STATUS_KEY, COMPLAINT_HISTORY_KEY, COMPLAINTS_DATA_KEY, showToast, showAlert, showConfirm, showLegalModal } from "./utils.js";
 import { initComplaintApp, loadAndRenderComplaints, syncComplaintStateFromServer, attachComplaintListeners } from "./complaint.js";
 import { loadStats } from "./stats.js";
@@ -21,6 +21,7 @@ const adminMenuItem = document.getElementById('admin-menu-item');
 const notificationBtn = document.getElementById('notification-btn');
 const notificationPopover = document.getElementById('notification-popover');
 const notificationDot = document.getElementById('notification-dot');
+let hasRefreshedForSwUpdate = false;
 
 // 페이지 관리
 const pages = {
@@ -33,6 +34,8 @@ const pages = {
 // 익명 로그인 처리를 위한 플래그
 let isAnonymousLoginAttempt = false;
 let authStateResolved = false;
+let isManualLogoutInProgress = false;
+const GOOGLE_LOGIN_PENDING_KEY = 'google_login_pending';
 
 // 인앱 브라우저 감지 및 경고 표시
 function handleInAppBrowser() {
@@ -60,11 +63,17 @@ function handleInAppBrowser() {
 function initApp() {
     handleInAppBrowser(); // 앱 시작 시 인앱 브라우저 체크
 
+    // 리디렉트 복귀 직후 결과를 먼저 처리해 인증 상태 반영 지연을 줄입니다.
+    handleGoogleRedirectResult().finally(() => {
+        // onAuthStateChanged에서 최종 상태를 처리합니다.
+    });
+
     onAuthStateChanged(auth, async (user) => {
         authStateResolved = true;
         let userProfile = null;
 
         if (user) {
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
             // 로그인 된 상태
             await syncComplaintStateFromServer(); // 서버와 로컬 상태 동기화
 
@@ -95,6 +104,17 @@ function initApp() {
                 }
             }
         } else {
+            if (isManualLogoutInProgress) {
+                return;
+            }
+
+            const isGoogleLoginPending = sessionStorage.getItem(GOOGLE_LOGIN_PENDING_KEY) === 'true';
+            if (isGoogleLoginPending) {
+                // 리디렉트 복귀 직후에는 인증 상태 확정 전 null 이벤트가 들어올 수 있어
+                // 로그인 모달을 다시 띄우지 않고 대기합니다.
+                return;
+            }
+
             // 로그아웃 상태
             const localUserInfo = localStorage.getItem(USER_INFO_KEY);
             if (localUserInfo && !isAnonymousLoginAttempt) {
@@ -119,6 +139,15 @@ function initApp() {
             await showMainApp(true, false);
         }
     }, 3000);
+
+    setTimeout(async () => {
+        if (sessionStorage.getItem(GOOGLE_LOGIN_PENDING_KEY) === 'true' && !auth.currentUser) {
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
+            if (!authStateResolved) {
+                await showMainApp(true, false);
+            }
+        }
+    }, 7000);
 }
 
 async function showMainApp(showOnboarding, showProfile) {
@@ -171,12 +200,15 @@ const googleLoginBtn = document.getElementById('google-login-btn');
 if (googleLoginBtn) {
     googleLoginBtn.addEventListener('click', async () => {
         const googleLoader = document.getElementById('google-loader');
+        sessionStorage.setItem(GOOGLE_LOGIN_PENDING_KEY, 'true');
         googleLoginBtn.style.display = 'none';
         if (googleLoader) googleLoader.style.display = 'block';
 
         const user = await signInWithGoogle();
+        if (user?.redirecting) return;
 
         if (!user) {
+             sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
              googleLoginBtn.style.display = 'block';
              if (googleLoader) googleLoader.style.display = 'none';
         }
@@ -348,10 +380,12 @@ if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
         const confirmed = await showConfirm('로그아웃하시겠습니까? 저장된 모든 진행 상황이 초기화됩니다.');
         if (confirmed) {
+            isManualLogoutInProgress = true;
             localStorage.removeItem(USER_INFO_KEY);
             localStorage.removeItem(COMPLAINT_STATUS_KEY);
             localStorage.removeItem(COMPLAINT_HISTORY_KEY);
             sessionStorage.removeItem(COMPLAINTS_DATA_KEY);
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
 
             if (auth) {
                 await auth.signOut();
@@ -379,6 +413,53 @@ function attachFooterLinks() {
     }
 }
 
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+        .then((registration) => {
+            if (registration.waiting) {
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                });
+            });
+
+            setInterval(() => registration.update(), 60 * 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    registration.update();
+                }
+            });
+        })
+        .catch(() => {
+            // 서비스워커 등록 실패 시 기존 앱 흐름 유지
+        });
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (hasRefreshedForSwUpdate) return;
+        hasRefreshedForSwUpdate = true;
+        window.location.reload();
+    });
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'FORCE_RELOAD' && !hasRefreshedForSwUpdate) {
+            hasRefreshedForSwUpdate = true;
+            window.location.reload();
+        }
+    });
+}
+
 
 // 문서 로드 시 초기화 실행
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+    registerServiceWorker();
+    initApp();
+});

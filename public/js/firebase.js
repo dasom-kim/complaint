@@ -22,6 +22,8 @@ import {
     signInAnonymously,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     onAuthStateChanged
 } from "firebase/auth";
 import firebaseConfig from './firebase-config.js';
@@ -92,12 +94,30 @@ export async function signInAnonymouslyIfNeeded() {
 // Google 로그인 함수
 export async function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobileOrInApp = /android|iphone|ipad|ipod|kakaotalk|naver|line|instagram|fb_iab|wv/.test(userAgent);
+
     try {
+        if (isMobileOrInApp) {
+            await signInWithRedirect(auth, provider);
+            return { redirecting: true };
+        }
         const result = await signInWithPopup(auth, provider);
         return result.user;
     } catch (error) {
         // console.error("Google 로그인 중 오류 발생:", error);
         showAlert("Google 로그인에 실패했습니다. 팝업 차단을 해제했는지 확인해주세요.");
+        return null;
+    }
+}
+
+export async function handleGoogleRedirectResult() {
+    try {
+        const result = await getRedirectResult(auth);
+        return result?.user || null;
+    } catch (error) {
+        // console.error("Google 리디렉트 로그인 처리 중 오류 발생:", error);
+        showAlert("Google 로그인 처리 중 문제가 발생했습니다. 다시 시도해주세요.");
         return null;
     }
 }
