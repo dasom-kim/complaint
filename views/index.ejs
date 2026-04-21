@@ -91,10 +91,6 @@
                     <div class="step-number">2</div>
                     <span>민원 작성</span>
                 </div>
-                <div class="step" id="progress-step-3">
-                    <div class="step-number">3</div>
-                    <span>내역</span>
-                </div>
             </div>
 
             <div id="step-1" class="step-content active">
@@ -125,13 +121,8 @@
                 <div id="complaint-list-container">
                     <!-- 민원 카드가 동적으로 여기에 삽입됩니다. -->
                 </div>
-            </div>
-
-            <div id="step-3" class="step-content">
-                <h2 style="color: var(--text-main); margin-bottom: 20px; font-size: 1.3rem;">오늘 접수한 민원 내역</h2>
-                <div id="history-container"></div>
-                <button class="btn-large btn-secondary" onclick="goToStep(2)" style="margin-top: 20px;">
-                    + 민원 추가 접수하기
+                <button class="btn-large" id="upload-summary-btn" style="margin-top: 24px;">
+                    민원 접수 건수 저장하기 🏆
                 </button>
             </div>
         </div>

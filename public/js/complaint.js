@@ -215,6 +215,10 @@ export async function renderHistory(category = 'all') {
 
 
 export async function goToStep(step) {
+    if (step === 3) {
+        step = 2;
+    }
+
     document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
     const stepEl = document.getElementById(`step-${step}`);
     if (stepEl) stepEl.classList.add('active');
@@ -222,39 +226,21 @@ export async function goToStep(step) {
     const progressBar = document.querySelector('.progress-bar');
     const step1 = document.getElementById('progress-step-1');
     const step2 = document.getElementById('progress-step-2');
-    const step3 = document.getElementById('progress-step-3');
 
     if (step1) step1.classList.remove('active', 'completed');
     if (step2) step2.classList.remove('active', 'completed');
-    if (step3) step3.classList.remove('active', 'completed');
 
     if (step === 1) {
         if (progressBar) progressBar.style.width = '0%';
         if (step1) step1.classList.add('active');
     } else if (step === 2) {
-        if (progressBar) progressBar.style.width = '50%';
+        if (progressBar) progressBar.style.width = '100%';
         if (step1) step1.classList.add('completed');
         if (step2) step2.classList.add('active');
         await openFirstUncompletedCard();
-    } else if (step === 3) {
-        if (progressBar) progressBar.style.width = '100%';
-        if (step1) step1.classList.add('completed');
-        if (step2) step2.classList.add('completed');
-        if (step3) step3.classList.add('active');
-
         const uploadButton = document.getElementById('upload-summary-btn');
-        const history = getCompletionHistory();
-        const today = getToday();
-        const todaysCompletions = history[today] || {};
-        const totalCount = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0);
+        if (uploadButton) uploadButton.style.display = 'block';
 
-        if (totalCount === 0) {
-            if(uploadButton) uploadButton.style.display = 'none';
-        } else {
-            if(uploadButton) uploadButton.style.display = 'block';
-        }
-
-        await renderHistory();
         await updateRankingButtonState();
     }
 }
@@ -262,8 +248,6 @@ window.goToStep = goToStep;
 
 
 export async function openFirstUncompletedCard() {
-    const status = getCompletionStatus();
-    let opened = false;
     const complaintsData = await getComplaintsData();
 
     complaintsData.forEach(complaint => {
@@ -272,18 +256,9 @@ export async function openFirstUncompletedCard() {
 
         const title = card.querySelector('.card-title');
         const wrapper = title.nextElementSibling;
-
-        if (status.completed.includes(complaint.id)) {
-            title.classList.add('collapsed');
-            wrapper.classList.add('collapsed');
-        } else if (!opened) {
-            title.classList.remove('collapsed');
-            wrapper.classList.remove('collapsed');
-            opened = true;
-        } else {
-            title.classList.add('collapsed');
-            wrapper.classList.add('collapsed');
-        }
+        if (!title || !wrapper) return;
+        title.classList.add('collapsed');
+        wrapper.classList.add('collapsed');
     });
 }
 
@@ -427,10 +402,10 @@ export async function initComplaintApp() {
     const todaysCompletions = history[today] || {};
     const hasHistoryToday = Object.values(todaysCompletions).reduce((sum, count) => sum + count, 0) > 0;
 
-    // 오늘 접수한 내역이 있으면 3단계(내역) 페이지로, 없으면 1단계(로그인) 페이지로 이동합니다.
+    // 오늘 접수한 내역이 있으면 2단계(민원 작성) 페이지로, 없으면 1단계(로그인) 페이지로 이동합니다.
     if (hasHistoryToday) {
-        // console.log("오늘 접수한 민원 내역이 있어 3단계로 바로 이동합니다.");
-        await goToStep(3);
+        // console.log("오늘 접수한 민원 내역이 있어 2단계로 바로 이동합니다.");
+        await goToStep(2);
     } else {
         // console.log("오늘 접수한 민원 내역이 없어 1단계부터 시작합니다.");
         await goToStep(1);
@@ -510,9 +485,6 @@ export function attachComplaintListeners() {
 
     const pStep2 = document.getElementById('progress-step-2');
     if (pStep2) pStep2.addEventListener('click', () => goToStep(2));
-
-    const pStep3 = document.getElementById('progress-step-3');
-    if (pStep3) pStep3.addEventListener('click', () => goToStep(3));
 
     const restartBtn = document.getElementById('restart-btn');
     if (restartBtn) {
@@ -612,7 +584,7 @@ export function attachComplaintListeners() {
                 showAlert('오류가 발생했습니다. 다시 시도해주세요.');
             } finally {
                 newUploadSummaryBtn.disabled = false;
-                await goToStep(3);
+                await goToStep(2);
             }
         });
     }

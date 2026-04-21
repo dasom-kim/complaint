@@ -9,14 +9,14 @@
     "watch": "watchify public/js/main.js -g [ babelify --presets [ @babel/preset-env ] ] -o public/js/bundle.js -v"
   },
   "dependencies": {
-    "firebase": "^9.9.0"
+    "firebase": "^12.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
     "@babel/preset-env": "^7.24.7",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
-    "live-server": "^1.2.2",
+    "live-server": "^1.2.0",
     "watchify": "^4.0.0"
   },
   "author": "",
