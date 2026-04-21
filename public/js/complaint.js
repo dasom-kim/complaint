@@ -526,7 +526,7 @@ export function attachComplaintListeners() {
 
             const serverState = getServerCompletionState();
             if (localTotalCount <= serverState.totalCount) {
-                showToast('이미 최신 민원 건수가 서버에 저장되어 있습니다.');
+                showToast('변경된 내용이 없어요 🙂');
                 return;
             }
 
