@@ -34,10 +34,6 @@
     box-sizing: border-box;
 }
 
-html {
-    overscroll-behavior-y: none;
-}
-
 body {
     font-family: 'Noto Sans KR', sans-serif;
     background-color: var(--bg-color);
@@ -46,8 +42,6 @@ body {
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
 }
 
 /* 모달 오버레이 스타일 */
@@ -884,7 +878,6 @@ textarea {
 .toast {
     visibility: hidden;
     min-width: 250px;
-    max-width: min(92vw, 520px);
     background-color: #334155;
     color: #fff;
     text-align: center;
@@ -897,9 +890,6 @@ textarea {
     transform: translateX(-50%) translateY(20px);
     font-size: 0.95rem;
     font-weight: 500;
-    line-height: 1.45;
-    word-break: break-word;
-    overflow-wrap: anywhere;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     box-shadow: var(--shadow-lg);
@@ -1226,19 +1216,13 @@ textarea {
 
 .guestbook-entry-user {
     font-weight: 700;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    line-height: 1.35;
-    gap: 2px;
 }
 
 .guestbook-entry-user .apt-name {
     font-weight: 500;
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-left: 0;
-    display: block;
+    margin-left: 8px;
 }
 
 .guestbook-entry-date {
@@ -1249,8 +1233,7 @@ textarea {
 .guestbook-entry-message {
     font-size: 0.95rem;
     color: var(--text-main);
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    word-break: keep-all;
     line-height: 1.7;
 }
 
@@ -1468,117 +1451,6 @@ textarea {
 
     .stats-card .count {
         font-size: 2.5rem;
-    }
-
-    .toast {
-        min-width: 0;
-        width: calc(100vw - 28px);
-        max-width: 520px;
-        left: 14px;
-        right: 14px;
-        bottom: max(14px, env(safe-area-inset-bottom));
-        transform: translateY(20px);
-        border-radius: 14px;
-        padding: 12px 14px;
-        font-size: 0.9rem;
-    }
-
-    .toast.show {
-        transform: translateY(0);
-    }
-
-    .ranking-item {
-        align-items: center;
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .ranking-item .rank {
-        width: 34px;
-        font-size: 1.05rem;
-    }
-
-    .ranking-item .user-info {
-        min-width: 0;
-        flex: 1;
-    }
-
-    .guestbook-entry {
-        padding: 14px;
-    }
-
-    .guestbook-entry-header {
-        align-items: center;
-        gap: 8px;
-    }
-
-    .guestbook-entry-user .apt-name {
-        display: block;
-        margin-left: 0;
-        margin-top: 0;
-    }
-
-    .guestbook-entry-header > div {
-        white-space: nowrap;
-    }
-
-    #admin-page .admin-section.card {
-        padding: 16px;
-    }
-
-    #admin-page .admin-section-header {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 10px !important;
-    }
-
-    #admin-page .admin-header-actions {
-        display: flex !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        gap: 8px !important;
-    }
-
-    #admin-page .admin-header-actions .filter-select,
-    #admin-page .admin-header-actions .btn-action,
-    #admin-page .admin-section-header > .btn-action {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-
-    #admin-page .admin-section-header h3 {
-        font-size: 1.05rem !important;
-        line-height: 1.35;
-        margin: 0 !important;
-        overflow-wrap: anywhere;
-    }
-
-    #admin-page .admin-form-actions {
-        flex-direction: column-reverse;
-    }
-
-    #admin-page .admin-form-actions .btn-action,
-    #admin-page .admin-form-actions .btn-large {
-        width: 100% !important;
-    }
-
-    #admin-page .history-item {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-        padding: 12px;
-    }
-
-    #admin-page .admin-item-actions {
-        width: 100%;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    #admin-page .history-item-title {
-        overflow-wrap: anywhere;
-        word-break: break-word;
     }
 
     .form-group select,
