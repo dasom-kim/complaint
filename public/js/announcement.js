@@ -50,7 +50,6 @@ window.toggleLike = async (event, announcementId) => {
         localItem.likedBy.splice(userIndex, 1);
     }
     
-    // Update sessionStorage before re-rendering
     sessionStorage.setItem('announcements', JSON.stringify(allAnnouncements));
     
     renderAnnouncements(); // Re-render with optimistic update
@@ -85,7 +84,6 @@ window.toggleLike = async (event, announcementId) => {
             }
         });
     } catch (e) {
-        // console.error("Transaction failed: ", e);
         showAlert("좋아요 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
 
         // Rollback optimistic update on failure
@@ -101,26 +99,21 @@ window.toggleLike = async (event, announcementId) => {
 
 
 export function renderAnnouncements() {
-    // console.log("renderAnnouncements() 호출됨");
     const contentEl = document.getElementById('notification-content');
     const user = window.firebase?.auth?.currentUser;
     const userIdentifier = user ? (user.isAnonymous ? user.uid : user.email) : null;
 
     const cachedAnnouncements = sessionStorage.getItem('announcements');
-    // console.log("세션 스토리지에서 데이터 가져옴:", cachedAnnouncements ? '성공' : '실패');
 
     if (cachedAnnouncements) {
         try {
             allAnnouncements = JSON.parse(cachedAnnouncements);
-            // console.log("JSON 파싱 성공:", allAnnouncements);
         } catch (e) {
-            // console.error("JSON 파싱 실패:", e);
             allAnnouncements = [];
         }
     }
 
     if (!allAnnouncements || allAnnouncements.length === 0) {
-        // console.log("표시할 공지사항 없음. 함수 종료.");
         contentEl.innerHTML = '<div class="announcement-empty">새로운 공지사항이 없습니다.</div>';
         return;
     }
@@ -179,9 +172,7 @@ export function renderAnnouncements() {
         announcementsHtml += paginationHtml;
     }
     
-    // console.log("생성된 HTML:", announcementsHtml);
     contentEl.innerHTML = announcementsHtml;
-    // console.log("HTML 렌더링 완료");
 }
 
 export async function loadAnnouncements() {
@@ -224,13 +215,7 @@ export async function loadAnnouncements() {
             allAnnouncements = [];
             sessionStorage.removeItem('announcements');
         }
-
-        if (allAnnouncements.length > 0) {
-            localStorage.setItem('maegyo_last_announcement_id', allAnnouncements[0].id);
-        }
-
     } catch (e) {
-        // console.error("공지사항 로드 중 오류:", e);
         allAnnouncements = [];
     }
 }
@@ -238,7 +223,6 @@ export async function loadAnnouncements() {
 export async function checkNewAnnouncements() {
     if (!window.firebase || !window.firebase.auth.currentUser) return false;
 
-    const notificationDot = document.getElementById('notification-dot');
     const lastCheckId = localStorage.getItem('maegyo_last_announcement_id');
 
     try {
@@ -252,20 +236,13 @@ export async function checkNewAnnouncements() {
 
             if (items.length > 0) {
                 const latestId = items[0].id;
-
                 if (!lastCheckId || (latestId && String(latestId) !== lastCheckId)) {
-                    notificationDot.style.display = 'block';
                     return true;
                 }
             }
         }
-
-        notificationDot.style.display = 'none';
         return false;
-
     } catch (e) {
-        // console.error("새 공지사항 확인 중 오류:", e);
-        notificationDot.style.display = 'none';
         return false;
     }
 }

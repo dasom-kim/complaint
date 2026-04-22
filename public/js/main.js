@@ -36,6 +36,8 @@ let isAnonymousLoginAttempt = false;
 let authStateResolved = false;
 let isManualLogoutInProgress = false;
 const GOOGLE_LOGIN_PENDING_KEY = 'google_login_pending';
+const GOOGLE_LOGIN_PENDING_AT_KEY = 'google_login_pending_at';
+const GOOGLE_LOGIN_PENDING_TIMEOUT_MS = 10000;
 
 // 인앱 브라우저 감지 및 경고 표시
 function handleInAppBrowser() {
@@ -74,6 +76,7 @@ function initApp() {
 
         if (user) {
             sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_AT_KEY);
             // 로그인 된 상태
             await syncComplaintStateFromServer(); // 서버와 로컬 상태 동기화
 
@@ -110,9 +113,20 @@ function initApp() {
 
             const isGoogleLoginPending = sessionStorage.getItem(GOOGLE_LOGIN_PENDING_KEY) === 'true';
             if (isGoogleLoginPending) {
+                const pendingAtRaw = sessionStorage.getItem(GOOGLE_LOGIN_PENDING_AT_KEY);
+                const pendingAt = pendingAtRaw ? Number(pendingAtRaw) : NaN;
+                const isPendingStillValid =
+                    Number.isFinite(pendingAt) &&
+                    Date.now() - pendingAt < GOOGLE_LOGIN_PENDING_TIMEOUT_MS;
+
                 // 리디렉트 복귀 직후에는 인증 상태 확정 전 null 이벤트가 들어올 수 있어
                 // 로그인 모달을 다시 띄우지 않고 대기합니다.
-                return;
+                if (isPendingStillValid) {
+                    return;
+                }
+
+                sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
+                sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_AT_KEY);
             }
 
             // 로그아웃 상태
@@ -143,11 +157,10 @@ function initApp() {
     setTimeout(async () => {
         if (sessionStorage.getItem(GOOGLE_LOGIN_PENDING_KEY) === 'true' && !auth.currentUser) {
             sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
-            if (!authStateResolved) {
-                await showMainApp(true, false);
-            }
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_AT_KEY);
+            await showMainApp(true, false);
         }
-    }, 7000);
+    }, GOOGLE_LOGIN_PENDING_TIMEOUT_MS);
 }
 
 async function showMainApp(showOnboarding, showProfile) {
@@ -174,8 +187,11 @@ async function showMainApp(showOnboarding, showProfile) {
         
         // 3. 새로운 공지사항이 있을 경우에만 팝업을 자동으로 표시
         if (hasNew) {
+            notificationDot.style.display = 'block';
             notificationPopover.classList.add('show');
             renderAnnouncements();
+        } else {
+            notificationDot.style.display = 'none';
         }
 
         await loadAndRenderComplaints();
@@ -201,6 +217,7 @@ if (googleLoginBtn) {
     googleLoginBtn.addEventListener('click', async () => {
         const googleLoader = document.getElementById('google-loader');
         sessionStorage.setItem(GOOGLE_LOGIN_PENDING_KEY, 'true');
+        sessionStorage.setItem(GOOGLE_LOGIN_PENDING_AT_KEY, String(Date.now()));
         googleLoginBtn.style.display = 'none';
         if (googleLoader) googleLoader.style.display = 'block';
 
@@ -209,6 +226,7 @@ if (googleLoginBtn) {
 
         if (!user) {
              sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
+             sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_AT_KEY);
              googleLoginBtn.style.display = 'block';
              if (googleLoader) googleLoader.style.display = 'none';
         }
@@ -361,6 +379,10 @@ if (notificationBtn) {
         if (isShown) {
             renderAnnouncements();
             notificationDot.style.display = 'none';
+            const announcements = JSON.parse(sessionStorage.getItem('announcements') || '[]');
+            if (announcements.length > 0) {
+                localStorage.setItem('maegyo_last_announcement_id', announcements[0].id);
+            }
         }
     });
 }
@@ -370,6 +392,11 @@ document.addEventListener('click', (event) => {
     if (notificationPopover && notificationPopover.classList.contains('show')) {
         if (!notificationPopover.contains(event.target) && !notificationBtn.contains(event.target)) {
             notificationPopover.classList.remove('show');
+            notificationDot.style.display = 'none';
+            const announcements = JSON.parse(sessionStorage.getItem('announcements') || '[]');
+            if (announcements.length > 0) {
+                localStorage.setItem('maegyo_last_announcement_id', announcements[0].id);
+            }
         }
     }
 });
@@ -384,8 +411,10 @@ if (logoutBtn) {
             localStorage.removeItem(USER_INFO_KEY);
             localStorage.removeItem(COMPLAINT_STATUS_KEY);
             localStorage.removeItem(COMPLAINT_HISTORY_KEY);
+            localStorage.removeItem('maegyo_last_announcement_id');
             sessionStorage.removeItem(COMPLAINTS_DATA_KEY);
             sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_KEY);
+            sessionStorage.removeItem(GOOGLE_LOGIN_PENDING_AT_KEY);
 
             if (auth) {
                 await auth.signOut();

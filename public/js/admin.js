@@ -1,5 +1,5 @@
 import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCUMENTS } from './firebase.js';
-import { showAlert, showToast, showConfirm } from './utils.js';
+import { showAlert, showToast, showConfirm, COMPLAINTS_DATA_KEY } from './utils.js';
 
 let isInitialized = false;
 let adminNotices = [];
@@ -43,7 +43,7 @@ function renderAdminUI() {
 
     adminPage.innerHTML = `
         <div class="admin-section card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+            <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0; font-size: 1.2rem;">📢 공지사항 관리</h3>
                 <button class="btn-action" id="admin-add-notice-btn">+ 새 공지 작성</button>
             </div>
@@ -58,7 +58,7 @@ function renderAdminUI() {
                     <label>내용 (Markdown 지원)</label>
                     <textarea id="admin-notice-content" placeholder="공지사항 내용" style="min-height: 150px;"></textarea>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="admin-form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn-action" id="admin-notice-cancel-btn">취소</button>
                     <button class="btn-large" id="admin-notice-save-btn" style="width: auto; padding: 10px 20px;">저장</button>
                 </div>
@@ -70,9 +70,9 @@ function renderAdminUI() {
         </div>
 
         <div class="admin-section card">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+            <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0; font-size: 1.2rem;">📝 민원 정보 관리</h3>
-                <div style="display: flex; gap: 10px;">
+                <div class="admin-header-actions" style="display: flex; gap: 10px;">
                     <select id="admin-complaint-category-filter" class="filter-select" style="min-width: 120px;">
                         <option value="all">전체 카테고리</option>
                     </select>
@@ -94,7 +94,7 @@ function renderAdminUI() {
                     <label>민원 내용</label>
                     <textarea id="admin-complaint-content" placeholder="민원 상세 내용" style="min-height: 150px;"></textarea>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="admin-form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn-action" id="admin-complaint-cancel-btn">취소</button>
                     <button class="btn-large" id="admin-complaint-save-btn" style="width: auto; padding: 10px 20px;">저장</button>
                 </div>
@@ -162,7 +162,7 @@ function renderAdminNoticesList() {
                     <div class="history-item-title">${notice.title}</div>
                     <div class="history-item-date">${dateString}</div>
                 </div>
-                <div style="display: flex; gap: 8px; white-space: nowrap;">
+                <div class="admin-item-actions" style="display: flex; gap: 8px; white-space: nowrap;">
                     <button class="btn-action" onclick="window.editAdminNotice('${notice.id}')" style="padding: 4px 8px; font-size: 0.8rem;">수정</button>
                     <button class="btn-action" onclick="window.deleteAdminNotice('${notice.id}')" style="padding: 4px 8px; font-size: 0.8rem; color: #ef4444; border-color: #fca5a5; background: #fef2f2;">삭제</button>
                 </div>
@@ -207,7 +207,7 @@ async function saveNotice() {
         return;
     }
 
-    const { db, doc, updateDoc, serverTimestamp, setDoc } = window.firebase;
+    const { db, doc, updateDoc, setDoc } = window.firebase;
     const noticeRef = doc(db, FIRESTORE_COLLECTIONS.COMMON, 'notice');
 
     try {
@@ -219,7 +219,7 @@ async function saveNotice() {
             }
         } else {
             const newId = 'notice_' + Date.now();
-            updatedItems.unshift({ id: newId, title, content, timestamp: serverTimestamp() });
+            updatedItems.unshift({ id: newId, title, content, timestamp: new Date() });
             const likeDocRef = doc(db, FIRESTORE_COLLECTIONS.NOTICE_LIKES, newId);
             await setDoc(likeDocRef, { likedBy: [], likeCount: 0 });
         }
@@ -291,7 +291,7 @@ function renderAdminComplaintsList(filterCategory) {
                     ${c.title}
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; white-space: nowrap;">
+            <div class="admin-item-actions" style="display: flex; gap: 8px; white-space: nowrap;">
                 <button class="btn-action" onclick="window.editAdminComplaint(${c.id})" style="padding: 4px 8px; font-size: 0.8rem;">수정</button>
                 <button class="btn-action" onclick="window.deleteAdminComplaint(${c.id})" style="padding: 4px 8px; font-size: 0.8rem; color: #ef4444; border-color: #fca5a5; background: #fef2f2;">삭제</button>
             </div>
