@@ -1,5 +1,5 @@
 import { FIRESTORE_COLLECTIONS, FIRESTORE_DOCUMENTS } from './firebase.js';
-import { showAlert, showToast, showConfirm } from './utils.js';
+import { COMPLAINTS_DATA_KEY, showAlert, showToast, showConfirm } from './utils.js';
 
 let isInitialized = false;
 let adminNotices = [];
